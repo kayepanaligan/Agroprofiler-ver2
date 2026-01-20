@@ -23,7 +23,13 @@ const GroupedBarChart = ({ data, distributionType, }) => {
         if (commodityCategory &&
             entry.commodities_categories?.[commodityCategory]) {
             Object.entries(entry.commodities_categories[commodityCategory]).forEach(([commodity, count]) => {
-                rowData[commodity] = count || 0;
+                // Handle both old format (number) and new format (object)
+                if (typeof count === 'object' && count !== null && 'count' in count) {
+                    rowData[commodity] = count.count || 0;
+                }
+                else {
+                    rowData[commodity] = typeof count === 'number' ? count : 0;
+                }
             });
         }
         if (distributionType === "farmers" && entry.farmers) {

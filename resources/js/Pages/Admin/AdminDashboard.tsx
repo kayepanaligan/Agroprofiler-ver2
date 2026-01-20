@@ -79,10 +79,62 @@ interface LineData {
 
 type HeatmapData = {
     [barangay: string]: {
-        commodities_categories?: {
-            [subtype: string]: { [subcategory: string]: number };
+        allocations?: { 
+            [subtype: string]: { 
+                count: number; 
+                amount?: number;
+                commodities?: {
+                    [commodityName: string]: {
+                        amount: number;
+                        count: number;
+                        percentage: number;
+                    };
+                };
+                farmersReceived?: number;
+                farmersYetToReceive?: number;
+            } 
         };
-        farmers?: { [subtype: string]: number };
+        commodities_categories?: {
+            [subtype: string]: { 
+                [subcategory: string]: number | {
+                    count: number;
+                    avgFarmSize: number;
+                    farmersCount: number;
+                };
+            };
+        };
+        farmers?: { 
+            Registered?: number;
+            Unregistered?: number;
+            Total?: number;
+            RegisteredDetails?: {
+                total: number;
+                male: number;
+                female: number;
+                pwd: number;
+                ip: number;
+                '4ps': number;
+                avgFarmSize: number;
+            };
+            UnregisteredDetails?: {
+                total: number;
+                male: number;
+                female: number;
+                pwd: number;
+                ip: number;
+                '4ps': number;
+                avgFarmSize: number;
+            };
+            [subtype: string]: number | {
+                total: number;
+                male: number;
+                female: number;
+                pwd: number;
+                ip: number;
+                '4ps': number;
+                avgFarmSize: number;
+            } | undefined;
+        };
         commodities?: Array<{
             commodities_category_name: string;
             commodities: Array<{ name: string; count: number }>;

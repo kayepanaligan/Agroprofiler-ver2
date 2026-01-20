@@ -2,6 +2,12 @@
     background-color: white;
     position: relative;
     z-index: 10;
+    overflow: visible !important;
+}
+
+.heatmap-container {
+    position: relative;
+    overflow: visible !important;
 }
 
 .legend-container {
@@ -41,4 +47,73 @@
     height: 10px;
     border-radius: 50%;
     margin-right: 8px;
+}
+
+/* High z-index for heatmap tooltips to ensure visibility */
+.heatmap-tooltip {
+    z-index: 10000 !important;
+    position: absolute !important;
+    pointer-events: auto !important;
+}
+
+/* Ensure Leaflet tooltip pane has high z-index and allows overflow */
+.leaflet-tooltip-pane {
+    z-index: 10000 !important;
+    pointer-events: none !important;
+    overflow: visible !important;
+}
+
+.leaflet-tooltip.heatmap-tooltip {
+    z-index: 10000 !important;
+    position: absolute !important;
+    pointer-events: auto !important;
+    background-color: white !important;
+    border: 2px solid #059669 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    padding: 10px !important;
+    max-width: 400px !important;
+    width: 400px !important;
+    font-size: 11px !important;
+    overflow: visible !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    word-break: break-word !important;
+    white-space: normal !important;
+    box-sizing: border-box !important;
+}
+
+.leaflet-tooltip.heatmap-tooltip::before {
+    border-top-color: #059669 !important;
+}
+
+/* Dark mode support */
+.dark .leaflet-tooltip.heatmap-tooltip {
+    background-color: #1f2937 !important;
+    color: #f9fafb !important;
+    border-color: #10b981 !important;
+}
+
+.dark .leaflet-tooltip.heatmap-tooltip::before {
+    border-top-color: #10b981 !important;
+}
+
+/* Ensure tooltip appears above all other elements including map controls */
+.leaflet-container .leaflet-tooltip.heatmap-tooltip {
+    z-index: 10000 !important;
+}
+
+.leaflet-tooltip-pane .heatmap-tooltip {
+    pointer-events: auto !important;
+}
+
+/* Allow tooltip pane to overflow map boundaries */
+.leaflet-tooltip-pane {
+    overflow: visible !important;
+    clip-path: none !important;
+}
+
+/* Ensure tooltips can extend beyond map container */
+.leaflet-container .leaflet-tooltip-pane {
+    overflow: visible !important;
 }

@@ -14,6 +14,6 @@ const Histogram = ({ data, title, color = "#F59E0B", }) => {
                                 backgroundColor: isDarkMode ? "#1E1E1E" : "#FFFFFF",
                                 color: isDarkMode ? "white" : "black",
                                 border: isDarkMode ? "1px solid #374151" : "1px solid #e5e7eb",
-                            } }), _jsx(Bar, { dataKey: "count", fill: color })] }) })] }));
+                            } }), _jsx(Bar, { dataKey: "count", fill: color, radius: [10, 10, 0, 0] })] }) })] }));
 };
 export default Histogram;

@@ -21,6 +21,12 @@ interface PolicyEffectivenessData {
     damagedFarms: number;
 }
 
+interface PolicyEffectivenessDataWithDistance extends PolicyEffectivenessData {
+    distance: number;
+    isOutlier: boolean;
+    expectedAllocation: number;
+}
+
 interface PolicyEffectivenessChartProps {
     data: PolicyEffectivenessData[];
 }
@@ -79,8 +85,8 @@ const PolicyEffectivenessChart: React.FC<PolicyEffectivenessChartProps> = ({
     const trendLine = calculateTrendLine();
 
     // Calculate distance from trend line for each point to identify outliers
-    const dataWithDistance = data.map((item) => {
-        if (!trendLine) return { ...item, distance: 0, isOutlier: false };
+    const dataWithDistance: PolicyEffectivenessDataWithDistance[] = data.map((item) => {
+        if (!trendLine) return { ...item, distance: 0, isOutlier: false, expectedAllocation: 0 };
         
         const expectedY = trendLine.slope * item.damagePercentage + trendLine.intercept;
         const actualY = item.allocationAmount;

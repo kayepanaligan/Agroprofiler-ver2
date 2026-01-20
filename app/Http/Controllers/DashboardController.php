@@ -235,6 +235,53 @@ class DashboardController extends Controller
                 ? (CropDamageCause::find($topDamageCauseRow->crop_damage_cause_id)?->name ?? 'N/A')
                 : 'N/A';
 
+            // Get unique farmers for registered and unregistered
+            $registeredFarmerIds = $barangayFarms->filter(fn($farm) => $farm->farmer?->status === 'registered')
+                ->pluck('farmer_id')->unique();
+            $unregisteredFarmerIds = $barangayFarms->filter(fn($farm) => $farm->farmer?->status === 'unregistered')
+                ->pluck('farmer_id')->unique();
+            
+            // Get IP eligibility
+            $ipEligibility = Elligibility::where('name', 'like', '%ip%')
+                ->orWhere('name', 'like', '%indigenous%')
+                ->first();
+            
+            // Calculate demographics for registered farmers
+            $registeredFarmersData = Farmer::whereIn('id', $registeredFarmerIds)->with('elligibilities')->get();
+            $registeredMale = $registeredFarmersData->where('sex', 'male')->count();
+            $registeredFemale = $registeredFarmersData->where('sex', 'female')->count();
+            $registeredPwd = $registeredFarmersData->where('pwd', 'yes')->count();
+            $registered4ps = $registeredFarmersData->where('4ps', 'yes')->count();
+            $registeredIp = 0;
+            if ($ipEligibility) {
+                $registeredIp = $registeredFarmersData->filter(function($farmer) use ($ipEligibility) {
+                    return $farmer->elligibilities->contains('id', $ipEligibility->id);
+                })->count();
+            }
+            
+            // Calculate average farm size for registered farmers
+            $registeredFarms = $barangayFarms->filter(fn($farm) => $registeredFarmerIds->contains($farm->farmer_id));
+            $registeredTotalFarmSize = $registeredFarms->sum(fn($farm) => (float)($farm->ha ?? 0));
+            $registeredAvgFarmSize = $registeredFarmersInBarangay > 0 ? ($registeredTotalFarmSize / $registeredFarmersInBarangay) : 0;
+            
+            // Calculate demographics for unregistered farmers
+            $unregisteredFarmersData = Farmer::whereIn('id', $unregisteredFarmerIds)->with('elligibilities')->get();
+            $unregisteredMale = $unregisteredFarmersData->where('sex', 'male')->count();
+            $unregisteredFemale = $unregisteredFarmersData->where('sex', 'female')->count();
+            $unregisteredPwd = $unregisteredFarmersData->where('pwd', 'yes')->count();
+            $unregistered4ps = $unregisteredFarmersData->where('4ps', 'yes')->count();
+            $unregisteredIp = 0;
+            if ($ipEligibility) {
+                $unregisteredIp = $unregisteredFarmersData->filter(function($farmer) use ($ipEligibility) {
+                    return $farmer->elligibilities->contains('id', $ipEligibility->id);
+                })->count();
+            }
+            
+            // Calculate average farm size for unregistered farmers
+            $unregisteredFarms = $barangayFarms->filter(fn($farm) => $unregisteredFarmerIds->contains($farm->farmer_id));
+            $unregisteredTotalFarmSize = $unregisteredFarms->sum(fn($farm) => (float)($farm->ha ?? 0));
+            $unregisteredAvgFarmSize = $unregisteredFarmersInBarangay > 0 ? ($unregisteredTotalFarmSize / $unregisteredFarmersInBarangay) : 0;
+
             $heatmapData[$barangay->name] = [
                 'allocations' => [],
                 'commodities_categories' => [],
@@ -242,6 +289,24 @@ class DashboardController extends Controller
                     'Registered' => $registeredFarmersInBarangay,
                     'Unregistered' => $unregisteredFarmersInBarangay,
                     'Total' => $totalFarmersInBarangay,
+                    'RegisteredDetails' => [
+                        'total' => $registeredFarmersInBarangay,
+                        'male' => $registeredMale,
+                        'female' => $registeredFemale,
+                        'pwd' => $registeredPwd,
+                        'ip' => $registeredIp,
+                        '4ps' => $registered4ps,
+                        'avgFarmSize' => round($registeredAvgFarmSize, 2),
+                    ],
+                    'UnregisteredDetails' => [
+                        'total' => $unregisteredFarmersInBarangay,
+                        'male' => $unregisteredMale,
+                        'female' => $unregisteredFemale,
+                        'pwd' => $unregisteredPwd,
+                        'ip' => $unregisteredIp,
+                        '4ps' => $unregistered4ps,
+                        'avgFarmSize' => round($unregisteredAvgFarmSize, 2),
+                    ],
                 ],
                 'commodities' => [],
                 'crop_damage' => [
@@ -268,9 +333,44 @@ class DashboardController extends Controller
                 $count = $allocationQuery->count();
                 $totalAmount = $allocationQuery->sum(DB::raw("CAST(amount AS DECIMAL(10,2))"));
 
+                // Count farmers who received (received = 'yes')
+                $farmersReceived = (clone $allocationQuery)
+                    ->where('received', 'yes')
+                    ->distinct('farmer_id')
+                    ->count('farmer_id');
+
+                // Count farmers yet to receive (received = 'no' or null)
+                $farmersYetToReceive = (clone $allocationQuery)
+                    ->where(function($query) {
+                        $query->where('received', 'no')
+                              ->orWhereNull('received');
+                    })
+                    ->distinct('farmer_id')
+                    ->count('farmer_id');
+
+                // Get commodity breakdown for this allocation type
+                $commodityBreakdown = [];
+                $commodityAllocations = (clone $allocationQuery)->select('commodity_id', DB::raw('SUM(CAST(amount AS DECIMAL(10,2))) as total_amount'), DB::raw('COUNT(*) as count'))
+                    ->groupBy('commodity_id')
+                    ->get();
+
+                foreach ($commodityAllocations as $commodityAlloc) {
+                    $commodity = \App\Models\Commodity::find($commodityAlloc->commodity_id);
+                    if ($commodity) {
+                        $commodityBreakdown[$commodity->name] = [
+                            'amount' => (float) $commodityAlloc->total_amount,
+                            'count' => $commodityAlloc->count,
+                            'percentage' => $totalAmount > 0 ? ((float) $commodityAlloc->total_amount / $totalAmount * 100) : 0,
+                        ];
+                    }
+                }
+
                 $heatmapData[$barangay->name]['allocations'][$type->name] = [
                     'count' => $count,
                     'amount' => $totalAmount,
+                    'commodities' => $commodityBreakdown,
+                    'farmersReceived' => $farmersReceived,
+                    'farmersYetToReceive' => $farmersYetToReceive,
                 ];
             }
 
@@ -278,8 +378,21 @@ class DashboardController extends Controller
                 $categoryCommodities = [];
 
                 foreach ($category->commodities as $commodity) {
-                    $count = $barangayFarms->filter(fn($farm) => $farm->commodity_id === $commodity->id)->count();
-                    $categoryCommodities[$commodity->name] = $count;
+                    $farmsWithCommodity = $barangayFarms->filter(fn($farm) => $farm->commodity_id === $commodity->id);
+                    $count = $farmsWithCommodity->count();
+                    
+                    // Calculate average farm size (ha) for this commodity
+                    $totalFarmSize = $farmsWithCommodity->sum(fn($farm) => (float)($farm->ha ?? 0));
+                    $avgFarmSize = $count > 0 ? ($totalFarmSize / $count) : 0;
+                    
+                    // Count distinct farmers for this commodity
+                    $farmersCount = $farmsWithCommodity->pluck('farmer_id')->unique()->count();
+                    
+                    $categoryCommodities[$commodity->name] = [
+                        'count' => $count,
+                        'avgFarmSize' => round($avgFarmSize, 2),
+                        'farmersCount' => $farmersCount,
+                    ];
                 }
 
                 $heatmapData[$barangay->name]['commodities_categories'][$category->name] = $categoryCommodities;

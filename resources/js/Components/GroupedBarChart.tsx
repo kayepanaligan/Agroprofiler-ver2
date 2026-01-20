@@ -21,11 +21,62 @@ import {
 // };
 type HeatmapData = {
     [barangay: string]: {
-        allocations?: { [subtype: string]: { count: number; amount?: number } };
-        commodities_categories?: {
-            [subcategory: string]: { [commodity: string]: number };
+        allocations?: { 
+            [subtype: string]: { 
+                count: number; 
+                amount?: number;
+                commodities?: {
+                    [commodityName: string]: {
+                        amount: number;
+                        count: number;
+                        percentage: number;
+                    };
+                };
+                farmersReceived?: number;
+                farmersYetToReceive?: number;
+            } 
         };
-        farmers?: { [subtype: string]: number };
+        commodities_categories?: {
+            [subcategory: string]: { 
+                [commodity: string]: number | {
+                    count: number;
+                    avgFarmSize: number;
+                    farmersCount: number;
+                };
+            };
+        };
+        farmers?: { 
+            Registered?: number;
+            Unregistered?: number;
+            Total?: number;
+            RegisteredDetails?: {
+                total: number;
+                male: number;
+                female: number;
+                pwd: number;
+                ip: number;
+                '4ps': number;
+                avgFarmSize: number;
+            };
+            UnregisteredDetails?: {
+                total: number;
+                male: number;
+                female: number;
+                pwd: number;
+                ip: number;
+                '4ps': number;
+                avgFarmSize: number;
+            };
+            [subtype: string]: number | {
+                total: number;
+                male: number;
+                female: number;
+                pwd: number;
+                ip: number;
+                '4ps': number;
+                avgFarmSize: number;
+            } | undefined;
+        };
     };
 };
 
@@ -72,7 +123,12 @@ const GroupedBarChart: React.FC<GroupedBarChartProps> = ({
             Object.entries(
                 entry.commodities_categories[commodityCategory]
             ).forEach(([commodity, count]) => {
-                rowData[commodity] = count || 0;
+                // Handle both old format (number) and new format (object)
+                if (typeof count === 'object' && count !== null && 'count' in count) {
+                    rowData[commodity] = count.count || 0;
+                } else {
+                    rowData[commodity] = typeof count === 'number' ? count : 0;
+                }
             });
         }
 

@@ -30,8 +30,11 @@ const PieChart = ({ data = [], colors = DEFAULT_COLORS, }) => {
         observer.observe(document.documentElement, { attributes: true });
         return () => observer.disconnect();
     }, []);
+    const total = data.reduce((sum, entry) => sum + entry.value, 0);
     const CustomTooltip = ({ active, payload }) => {
         if (active && payload && payload.length) {
+            const value = payload[0].value;
+            const percentage = total > 0 ? ((value / total) * 100).toFixed(2) : 0;
             return (_jsxs("div", { style: {
                     backgroundColor: isDarkMode ? "#1E1E1E" : "#FFFFFF",
                     color: isDarkMode ? "white" : "black",
@@ -43,9 +46,10 @@ const PieChart = ({ data = [], colors = DEFAULT_COLORS, }) => {
                         : "0px 4px 10px rgba(0, 0, 0, 0.2)",
                 }, children: [_jsx("p", { style: {
                             margin: 0,
-                            fontWeight: "semi-bold",
+                            marginBottom: "6px",
+                            fontWeight: "bold",
                             fontSize: "14px",
-                        }, children: payload[0].name }), _jsxs("p", { style: { margin: 0, fontSize: "12px" }, children: ["Value: ", payload[0].value] })] }));
+                        }, children: payload[0].name }), _jsxs("p", { style: { margin: 0, marginBottom: "4px", fontSize: "12px" }, children: ["Count: ", value.toLocaleString()] }), _jsxs("p", { style: { margin: 0, fontSize: "12px", fontWeight: "600", color: isDarkMode ? "#4ade80" : "#16a34a" }, children: ["Percentage: ", percentage, "%"] })] }));
         }
         return null;
     };
@@ -56,7 +60,7 @@ const PieChart = ({ data = [], colors = DEFAULT_COLORS, }) => {
             padding: "5px",
             flex: "wrap",
             marginBottom: "10px",
-        }, className: "overflow-auto", children: _jsx(ResponsiveContainer, { width: "100%", height: 500, children: _jsxs(RechartsPieChart, { children: [_jsx(Pie, { data: data, dataKey: "value", nameKey: "name", cx: "50%", cy: "50%", outerRadius: 150, label: ({ x, y, cx, cy, midAngle, name, index, outerRadius, }) => {
+        }, className: "overflow-auto", children: _jsx(ResponsiveContainer, { width: "100%", height: 500, children: _jsxs(RechartsPieChart, { children: [_jsx(Pie, { data: data, dataKey: "value", nameKey: "name", cx: "50%", cy: "50%", outerRadius: 150, label: ({ x, y, cx, cy, midAngle, name, index, outerRadius, value, }) => {
                             const words = name.split(" ");
                             const RADIAN = Math.PI / 180;
                             const sin = Math.sin(-midAngle * RADIAN);
@@ -64,10 +68,14 @@ const PieChart = ({ data = [], colors = DEFAULT_COLORS, }) => {
                             const radius = (outerRadius ?? 150) + 50;
                             const labelX = cx + radius * cos;
                             const labelY = cy + radius * sin;
-                            return (_jsxs("g", { children: [_jsx("line", { x1: cx + (outerRadius ?? 150) * cos, y1: cy + (outerRadius ?? 150) * sin, x2: labelX, y2: labelY, stroke: "#878787", strokeWidth: 2 }), _jsx("g", { transform: `translate(${labelX}, ${labelY})`, children: words.map((word, i) => (_jsx("text", { x: 0, y: i * 14, textAnchor: cos >= 0
-                                                ? "start"
-                                                : "end", fontSize: "14px", fontWeight: "bold", fill: colors[index %
-                                                colors.length], children: word }, i))) })] }));
+                            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                            return (_jsxs("g", { children: [_jsx("line", { x1: cx + (outerRadius ?? 150) * cos, y1: cy + (outerRadius ?? 150) * sin, x2: labelX, y2: labelY, stroke: "#878787", strokeWidth: 2 }), _jsxs("g", { transform: `translate(${labelX}, ${labelY})`, children: [words.map((word, i) => (_jsx("text", { x: 0, y: i * 14, textAnchor: cos >= 0
+                                                    ? "start"
+                                                    : "end", fontSize: "14px", fontWeight: "bold", fill: colors[index %
+                                                    colors.length], children: word }, i))), _jsxs("text", { x: 0, y: words.length * 14 + 4, textAnchor: cos >= 0
+                                                    ? "start"
+                                                    : "end", fontSize: "12px", fontWeight: "bold", fill: colors[index %
+                                                    colors.length], children: [percentage, "%"] })] })] }));
                         }, labelLine: (props) => {
                             const { cx, cy, midAngle, outerRadius } = props;
                             const RADIAN = Math.PI / 180;

@@ -190,10 +190,13 @@ const Heatmap: React.FC<HeatmapProps> = ({
             category !== "All" &&
             subtype !== "All"
         ) {
-            count =
-                heatmapData[barangayName]?.commodities_categories?.[category]?.[
-                    subtype
-                ] || 0;
+            const commodityData = heatmapData[barangayName]?.commodities_categories?.[category]?.[subtype];
+            // Handle both old format (number) and new format (object)
+            if (typeof commodityData === 'object' && commodityData !== null) {
+                count = commodityData.count || 0;
+            } else {
+                count = typeof commodityData === 'number' ? commodityData : 0;
+            }
         }
 
         if (view === "commodities") {
@@ -353,20 +356,103 @@ const Heatmap: React.FC<HeatmapProps> = ({
             const unregisteredFarmers =
                 heatmapData[barangayName]?.farmers?.Unregistered || 0;
 
-            const registeredPercentage =
-                totalFarmers > 0
-                    ? ((registeredFarmers / totalFarmers) * 100).toFixed(2)
-                    : 0;
-            const unregisteredPercentage =
-                totalFarmers > 0
-                    ? ((unregisteredFarmers / totalFarmers) * 100).toFixed(2)
-                    : 0;
+            // Get details based on selected filter
+            const farmerDetails = subtype === "Registered" 
+                ? heatmapData[barangayName]?.farmers?.RegisteredDetails
+                : subtype === "Unregistered"
+                ? heatmapData[barangayName]?.farmers?.UnregisteredDetails
+                : null;
 
-            tooltipContent += `
-            All: ${totalFarmers} Farmers<br/>
-            Registered: ${registeredPercentage}% (${registeredFarmers})<br/>
-            Unregistered: ${unregisteredPercentage}% (${unregisteredFarmers})
+            if (farmerDetails && (subtype === "Registered" || subtype === "Unregistered")) {
+                const farmerType = subtype === "Registered" ? "Registered" : "Unregistered";
+                const total = farmerDetails.total || 0;
+                const male = farmerDetails.male || 0;
+                const female = farmerDetails.female || 0;
+                const pwd = farmerDetails.pwd || 0;
+                const ip = farmerDetails.ip || 0;
+                const fourPs = farmerDetails['4ps'] || 0;
+                const avgFarmSize = farmerDetails.avgFarmSize || 0;
+                
+                // Calculate percentages based on total farmers in the area
+                const malePercentage = totalFarmers > 0 ? ((male / totalFarmers) * 100) : 0;
+                const femalePercentage = totalFarmers > 0 ? ((female / totalFarmers) * 100) : 0;
+                
+                // Create analytics summary
+                const percentageOfTotal = totalFarmers > 0 ? ((total / totalFarmers) * 100) : 0;
+                const intensityLevel = percentageOfTotal >= 40 ? 'high' : percentageOfTotal >= 20 ? 'medium' : 'low';
+                const intensityText = percentageOfTotal >= 40 ? 'majority' : percentageOfTotal >= 20 ? 'significant portion' : 'minority';
+                
+                let analyticsSummary = '';
+                if (total > 0) {
+                    analyticsSummary = `
+                <div style="margin-top: 8px; padding-top: 8px; border-top: 2px solid #e5e7eb; background-color: #f9fafb; padding: 10px; border-radius: 6px; width: 100%; box-sizing: border-box;">
+                    <strong style="color: #059669; font-size: 13px;">📊 Analytics Summary:</strong>
+                    <div style="margin-top: 6px; font-size: 11px; line-height: 1.6; color: #374151; word-wrap: break-word; overflow-wrap: break-word; word-break: break-word; max-width: 100%;">
+                        ${farmerType} farmers represent <strong>${percentageOfTotal.toFixed(1)}%</strong> of all farmers in ${barangayName}, 
+                        making them a <strong>${intensityText}</strong> (${intensityLevel} presence level) of the farming community.
+                        ${avgFarmSize > 0 ? `<br/><br/>The average farm size per ${farmerType.toLowerCase()} farmer is <strong>${avgFarmSize.toFixed(2)} hectares</strong>.` : ''}
+                        ${pwd > 0 || ip > 0 || fourPs > 0 ? `<br/><br/>Special beneficiaries include <strong>${pwd} PWD</strong>, <strong>${ip} IP</strong>, and <strong>${fourPs} 4Ps</strong> beneficiaries.` : ''}
+                    </div>
+                </div>
+                    `;
+                } else {
+                    analyticsSummary = `
+                <div style="margin-top: 8px; padding-top: 8px; border-top: 2px solid #e5e7eb; background-color: #fef2f2; padding: 10px; border-radius: 6px; width: 100%; box-sizing: border-box;">
+                    <strong style="color: #dc2626; font-size: 13px;">📊 Analytics Summary:</strong>
+                    <div style="margin-top: 6px; font-size: 11px; line-height: 1.6; color: #374151; word-wrap: break-word; overflow-wrap: break-word; word-break: break-word; max-width: 100%;">
+                        No ${farmerType.toLowerCase()} farmers recorded in ${barangayName}.
+                    </div>
+                </div>
+                    `;
+                }
+
+                tooltipContent += `
+            <div style="width: 400px; max-width: 400px; word-wrap: break-word; overflow-wrap: break-word; word-break: break-word; box-sizing: border-box; line-height: 1.5;">
+                <div style="font-weight: 600; font-size: 13px; margin-bottom: 8px; color: #059669;">${farmerType} Farmers - ${barangayName}</div>
+                <div style="font-size: 11px; margin-bottom: 6px;">
+                    <strong>Total ${farmerType.toLowerCase()} farmers:</strong> ${total} farmer${total !== 1 ? 's' : ''}
+                </div>
+                <div style="font-size: 11px; margin-bottom: 6px;">
+                    <strong>Gender Distribution:</strong><br/>
+                    <span style="margin-left: 10px;">• Male: ${male} (${malePercentage.toFixed(1)}% of total farmers)</span><br/>
+                    <span style="margin-left: 10px;">• Female: ${female} (${femalePercentage.toFixed(1)}% of total farmers)</span>
+                </div>
+                <div style="font-size: 11px; margin-bottom: 6px;">
+                    <strong>Beneficiaries:</strong><br/>
+                    <span style="margin-left: 10px;">• PWD: ${pwd} farmer${pwd !== 1 ? 's' : ''}</span><br/>
+                    <span style="margin-left: 10px;">• IP: ${ip} farmer${ip !== 1 ? 's' : ''}</span><br/>
+                    <span style="margin-left: 10px;">• 4Ps: ${fourPs} farmer${fourPs !== 1 ? 's' : ''}</span>
+                </div>
+                ${avgFarmSize > 0 ? `<div style="font-size: 11px; margin-bottom: 6px;"><strong>Avg farm size per farmer:</strong> ${avgFarmSize.toFixed(2)} ha</div>` : ''}
+                ${analyticsSummary}
+            </div>
         `;
+            } else {
+                // Fallback for when no specific filter is selected
+                const registeredPercentage =
+                    totalFarmers > 0
+                        ? ((registeredFarmers / totalFarmers) * 100).toFixed(2)
+                        : 0;
+                const unregisteredPercentage =
+                    totalFarmers > 0
+                        ? ((unregisteredFarmers / totalFarmers) * 100).toFixed(2)
+                        : 0;
+
+                tooltipContent += `
+            <div style="width: 400px; max-width: 400px; word-wrap: break-word; overflow-wrap: break-word; word-break: break-word; box-sizing: border-box; line-height: 1.5;">
+                <div style="font-weight: 600; font-size: 13px; margin-bottom: 8px; color: #059669;">Farmers - ${barangayName}</div>
+                <div style="font-size: 11px; margin-bottom: 6px;">
+                    <strong>Total:</strong> ${totalFarmers} farmer${totalFarmers !== 1 ? 's' : ''}
+                </div>
+                <div style="font-size: 11px; margin-bottom: 6px;">
+                    <strong>Registered:</strong> ${registeredPercentage}% (${registeredFarmers})
+                </div>
+                <div style="font-size: 11px; margin-bottom: 6px;">
+                    <strong>Unregistered:</strong> ${unregisteredPercentage}% (${unregisteredFarmers})
+                </div>
+            </div>
+        `;
+            }
         } else if (view === "allocations" && subtype !== "All") {
             let percentage = 0;
             const allocationTypeData = allocationType.find(
@@ -376,6 +462,17 @@ const Heatmap: React.FC<HeatmapProps> = ({
             const allocationTypeIdentifier = allocationTypeData
                 ? allocationTypeData.identifier.title
                 : "";
+
+            // Check if this is a cash assistance allocation (PHP or Peso identifier)
+            const isCashAssistance = allocationTypeIdentifier === "PHP" || allocationTypeIdentifier === "Peso";
+            const currencySymbol = isCashAssistance ? "₱" : "";
+            const formatNumber = (num: number, isCash: boolean) => {
+                if (isCash) {
+                    return `${currencySymbol}${num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                } else {
+                    return num.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+                }
+            };
 
             const totalAllocationTypeAmount = allocationTypeData
                 ? parseFloat(allocationTypeData.amount)
@@ -394,22 +491,162 @@ const Heatmap: React.FC<HeatmapProps> = ({
                 percentage = 0;
             }
 
-            tooltipContent += `
-        Allocation Type: ${subtype}<br/>
-        Total Allocation: ${totalAllocationTypeAmount}<br/>
-        ${barangayName} received ${percentage}% (${allocationAmount}) ${allocationTypeIdentifier}
-        of ${subtype} (${totalAllocationTypeAmount}) ${allocationTypeIdentifier}
+            // Calculate average distribution per farmer
+            const totalFarmers = heatmapData[barangayName]?.farmers?.Total || 0;
+            const avgDistributionPerFarmer = totalFarmers > 0 
+                ? (allocationAmount / totalFarmers)
+                : 0;
+
+            // Get commodity breakdown from backend data
+            const commodityBreakdown = heatmapData[barangayName]?.allocations?.[subtype]?.commodities || {};
+            const commoditiesList = Object.keys(commodityBreakdown);
+            const allocationCount = heatmapData[barangayName]?.allocations?.[subtype]?.count || 0;
+            const farmersReceived = heatmapData[barangayName]?.allocations?.[subtype]?.farmersReceived || 0;
+            const farmersYetToReceive = heatmapData[barangayName]?.allocations?.[subtype]?.farmersYetToReceive || 0;
+            
+            // Calculate percentage of commodities who received the allocation type
+            let totalCommodities = 0;
+            if (heatmapData[barangayName]?.commodities_categories) {
+                Object.values(heatmapData[barangayName].commodities_categories).forEach((categoryCommodities: any) => {
+                    Object.keys(categoryCommodities).forEach((commodityName: string) => {
+                        const commodityCount = categoryCommodities[commodityName] || 0;
+                        if (commodityCount > 0) {
+                            totalCommodities++;
+                        }
+                    });
+                });
+            }
+            const commodityPercentage = totalCommodities > 0 
+                ? ((commoditiesList.length / totalCommodities) * 100)
+                : 0;
+
+            // Build simplified, non-redundant tooltip content
+            const intensityLevel = percentage >= 40 ? 'high' : percentage >= 20 ? 'medium' : 'low';
+            const intensityText = percentage >= 40 ? 'significantly' : percentage >= 20 ? 'moderately' : 'minimally';
+            
+            // Build commodities list (simplified)
+            let commoditiesListHtml = '';
+            if (commoditiesList.length > 0) {
+                const topCommodities = commoditiesList.slice(0, 3); // Show max 3 commodities
+                commoditiesListHtml = '<div style="margin-top: 6px;"><strong>Top Commodities:</strong> ';
+                commoditiesListHtml += topCommodities.map((commodityName: string) => {
+                    const commodityData = commodityBreakdown[commodityName];
+                    const commodityPct = commodityData?.percentage || 0;
+                    return `${commodityName} (${commodityPct.toFixed(1)}%)`;
+                }).join(', ');
+                if (commoditiesList.length > 3) {
+                    commoditiesListHtml += ` +${commoditiesList.length - 3} more`;
+                }
+                commoditiesListHtml += '</div>';
+            }
+
+            if (allocationAmount > 0) {
+                tooltipContent += `
+        <div style="width: 400px; max-width: 400px; word-wrap: break-word; overflow-wrap: break-word; word-break: break-word; box-sizing: border-box; line-height: 1.5;">
+            <div style="font-weight: 600; font-size: 13px; margin-bottom: 8px; color: #059669;">${subtype} - ${barangayName}</div>
+            <div style="font-size: 11px; margin-bottom: 6px;">
+                <strong>Received:</strong> ${formatNumber(allocationAmount, isCashAssistance)} ${allocationTypeIdentifier} 
+                (<strong>${percentage.toFixed(1)}%</strong> of total)
+            </div>
+            <div style="font-size: 11px; margin-bottom: 6px;">
+                <strong>Farmers:</strong> ${farmersReceived} received, ${farmersYetToReceive} pending
+            </div>
+            ${totalFarmers > 0 ? `<div style="font-size: 11px; margin-bottom: 6px;"><strong>Avg per farmer:</strong> ${formatNumber(avgDistributionPerFarmer, isCashAssistance)} ${allocationTypeIdentifier}</div>` : ''}
+            ${commoditiesList.length > 0 ? `<div style="font-size: 11px; margin-bottom: 6px;"><strong>Commodities:</strong> ${commoditiesList.length} type${commoditiesList.length > 1 ? 's' : ''} (${commodityPercentage.toFixed(1)}% coverage)</div>` : ''}
+            ${commoditiesListHtml}
+            <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #e5e7eb; font-size: 10px; color: #6b7280; line-height: 1.4;">
+                ${intensityText.charAt(0).toUpperCase() + intensityText.slice(1)} allocated (${intensityLevel} priority). 
+                ${allocationCount} record${allocationCount !== 1 ? 's' : ''} distributed.
+            </div>
+        </div>
     `;
+            } else {
+                tooltipContent += `
+        <div style="width: 400px; max-width: 400px; word-wrap: break-word; overflow-wrap: break-word; word-break: break-word; box-sizing: border-box; line-height: 1.5;">
+            <div style="font-weight: 600; font-size: 13px; margin-bottom: 8px; color: #dc2626;">${subtype} - ${barangayName}</div>
+            <div style="font-size: 11px; color: #6b7280;">
+                No allocations received. May require attention for future planning.
+            </div>
+        </div>
+    `;
+            }
         } else if (
             view === "commodities" &&
             category !== "All" &&
             subtype !== "All"
         ) {
-            const commodityCount =
-                heatmapData[barangayName]?.commodities_categories?.[category]?.[
-                    subtype
-                ] || 0;
-            tooltipContent += `${category} ${subtype}: ${commodityCount} farms`;
+            const commodityData = heatmapData[barangayName]?.commodities_categories?.[category]?.[subtype];
+            
+            // Handle both old format (number) and new format (object)
+            let commodityCount = 0;
+            let avgFarmSize = 0;
+            let farmersCount = 0;
+            
+            if (typeof commodityData === 'object' && commodityData !== null) {
+                commodityCount = commodityData.count || 0;
+                avgFarmSize = commodityData.avgFarmSize || 0;
+                farmersCount = commodityData.farmersCount || 0;
+            } else {
+                commodityCount = typeof commodityData === 'number' ? commodityData : 0;
+            }
+            
+            // Calculate additional statistics for analytics
+            const totalFarmArea = commodityCount * avgFarmSize;
+            const avgFarmersPerFarm = commodityCount > 0 ? (farmersCount / commodityCount) : 0;
+            
+            // Calculate total farms in this category for percentage
+            let totalFarmsInCategory = 0;
+            if (heatmapData[barangayName]?.commodities_categories?.[category]) {
+                Object.values(heatmapData[barangayName].commodities_categories[category]).forEach((item: any) => {
+                    if (typeof item === 'object' && item !== null && 'count' in item) {
+                        totalFarmsInCategory += item.count || 0;
+                    } else if (typeof item === 'number') {
+                        totalFarmsInCategory += item;
+                    }
+                });
+            }
+            const percentageOfCategory = totalFarmsInCategory > 0 ? ((commodityCount / totalFarmsInCategory) * 100) : 0;
+            
+            // Determine intensity level
+            const intensityLevel = percentageOfCategory >= 40 ? 'high' : percentageOfCategory >= 20 ? 'medium' : 'low';
+            const intensityText = percentageOfCategory >= 40 ? 'dominant' : percentageOfCategory >= 20 ? 'significant' : 'minor';
+            
+            // Create analytics summary
+            let analyticsSummary = '';
+            if (commodityCount > 0) {
+                analyticsSummary = `
+            <div style="margin-top: 8px; padding-top: 8px; border-top: 2px solid #e5e7eb; background-color: #f9fafb; padding: 10px; border-radius: 6px; width: 100%; box-sizing: border-box;">
+                <strong style="color: #059669; font-size: 13px;">📊 Analytics Summary:</strong>
+                <div style="margin-top: 6px; font-size: 11px; line-height: 1.6; color: #374151; word-wrap: break-word; overflow-wrap: break-word; word-break: break-word; max-width: 100%;">
+                    ${subtype} represents <strong>${percentageOfCategory.toFixed(1)}%</strong> of all ${category} farms in ${barangayName}, 
+                    making it a <strong>${intensityText}</strong> commodity (${intensityLevel} presence level) in this area.
+                    ${totalFarmArea > 0 ? `<br/><br/>The total farm area for ${subtype} is <strong>${totalFarmArea.toFixed(2)} hectares</strong>, with an average farm size of <strong>${avgFarmSize.toFixed(2)} ha</strong> per farm.` : ''}
+                    ${farmersCount > 0 ? `<br/><br/>With <strong>${farmersCount} farmer${farmersCount !== 1 ? 's' : ''}</strong> engaged in this commodity, the average is <strong>${avgFarmersPerFarm.toFixed(2)} farmer${avgFarmersPerFarm !== 1 ? 's' : ''} per farm</strong>.` : ''}
+                </div>
+            </div>
+                `;
+            } else {
+                analyticsSummary = `
+            <div style="margin-top: 8px; padding-top: 8px; border-top: 2px solid #e5e7eb; background-color: #fef2f2; padding: 10px; border-radius: 6px; width: 100%; box-sizing: border-box;">
+                <strong style="color: #dc2626; font-size: 13px;">📊 Analytics Summary:</strong>
+                <div style="margin-top: 6px; font-size: 11px; line-height: 1.6; color: #374151; word-wrap: break-word; overflow-wrap: break-word; word-break: break-word; max-width: 100%;">
+                    ${subtype} has no farms recorded in ${barangayName}. This commodity may not be cultivated in this area or requires data collection.
+                </div>
+            </div>
+                `;
+            }
+            
+            tooltipContent += `
+        <div style="width: 400px; max-width: 400px; word-wrap: break-word; overflow-wrap: break-word; word-break: break-word; box-sizing: border-box; line-height: 1.5;">
+            <div style="font-weight: 600; font-size: 13px; margin-bottom: 8px; color: #059669;">${subtype} - ${barangayName}</div>
+            <div style="font-size: 11px; margin-bottom: 6px;">
+                <strong>Farms:</strong> ${commodityCount} farm${commodityCount !== 1 ? 's' : ''}
+            </div>
+            ${avgFarmSize > 0 ? `<div style="font-size: 11px; margin-bottom: 6px;"><strong>Avg farm size:</strong> ${avgFarmSize.toFixed(2)} ha</div>` : ''}
+            ${farmersCount > 0 ? `<div style="font-size: 11px; margin-bottom: 6px;"><strong>Farmers:</strong> ${farmersCount} farmer${farmersCount !== 1 ? 's' : ''}</div>` : ''}
+            ${analyticsSummary}
+        </div>
+    `;
         } else if (view === "crop_damage") {
             const cropDamageData = heatmapData[barangayName]?.crop_damage || {};
             let pct, damaged, total, sevHigh, sevMed, sevLow, topCommodity, topCause;
@@ -436,7 +673,7 @@ const Heatmap: React.FC<HeatmapProps> = ({
             }
 
             tooltipContent += `
-                <div style="min-width: 240px;">
+                <div style="min-width: 240px; position: relative; z-index: 9999;">
                     <div><strong>Barangay:</strong> ${barangayName}</div>
                     <div style="margin-top: 6px;"><strong>Damage Level:</strong> ${getDamageLevel(pct)} (${pct.toFixed(1)}%)</div>
                     <div><strong>Damaged Farms:</strong> ${damaged} / ${total}</div>
@@ -455,6 +692,9 @@ const Heatmap: React.FC<HeatmapProps> = ({
         layer.bindTooltip(tooltipContent, {
             permanent: false,
             direction: "top",
+            className: "heatmap-tooltip",
+            interactive: true,
+            sticky: true,
         });
 
         // Click popup (especially for crop damage view)
