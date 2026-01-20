@@ -14,6 +14,13 @@ class IdentifierSeeder extends Seeder
     public function run(): void
     {
         $identifiers = [
+            // Allocation type identifiers
+            ['title' => 'PHP', 'desc' => 'Philippine Peso - for cash assistance allocations'],
+            ['title' => 'Peso', 'desc' => 'Peso - for cash assistance allocations'],
+            ['title' => 'Unit', 'desc' => 'Unit - for machinery and equipment allocations'],
+            ['title' => 'KG', 'desc' => 'Kilogram - for fertilizer and material allocations'],
+            ['title' => 'Sack', 'desc' => 'Sack - for fertilizer and material allocations'],
+            // Farmer identification identifiers (keeping for backward compatibility)
             ['title' => 'RSBSA', 'desc' => 'Registry System for Basic Sectors in Agriculture'],
             ['title' => 'ID Card', 'desc' => 'Government-issued ID Card'],
             ['title' => 'Certificate', 'desc' => 'Farmer Certificate'],

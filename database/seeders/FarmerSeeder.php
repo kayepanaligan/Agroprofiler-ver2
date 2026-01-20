@@ -14,6 +14,6 @@ class FarmerSeeder extends Seeder
     public function run(): void
     {
         // Farmer::truncate();
-        Farmer::factory()->count(200)->create();
+        Farmer::factory()->count(2000)->create();
     }
 }

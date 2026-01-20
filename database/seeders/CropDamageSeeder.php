@@ -25,7 +25,10 @@ class CropDamageSeeder extends Seeder
         $faker = Faker::create();
         $farms = Farm::all();
 
-        foreach ($farms as $farm) {
+        // Only create crop damage for 60-70% of farms (not all)
+        $farmsWithDamage = $farms->random((int)($farms->count() * 0.65));
+
+        foreach ($farmsWithDamage as $farm) {
             $farmSize = $farm->ha; // Get the total farm size
 
             // Ensure total damaged area does not exceed farm size
@@ -55,7 +58,7 @@ class CropDamageSeeder extends Seeder
                 'proof' => $faker->imageUrl(),
                 'farmer_id' => $farm->farmer_id,
                 'farm_id' => $farm->id,
-                'commodity_id' => Commodity::inRandomOrder()->first()->id,
+                'commodity_id' => $farm->commodity_id, // Use the farm's commodity instead of random
                 'brgy_id' => $farm->brgy_id,
                 'crop_damage_cause_id' => CropDamageCause::inRandomOrder()->first()->id,
                 'total_damaged_area' => $totalDamagedArea,

@@ -284,19 +284,18 @@ export function CropDamageKPICard({
                             </div>
                         ))}
                     </div>
-                    <div>
+                    <div className="flex flex-wrap items-center gap-1 sm:gap-2">
                         <span className="text-[10px] text-gray-500 dark:text-gray-400">Most Affected Commodity: </span>
                         <span className="text-xs font-semibold dark:text-white">{mostAffectedCommodity}</span>
-                    </div>
-                    <div>
+                        <span className="text-[10px] text-gray-500 dark:text-gray-400">•</span>
                         <span className="text-[10px] text-gray-500 dark:text-gray-400">Most Impacted Group: </span>
                         <span className="text-xs font-semibold dark:text-white">{mostImpactedGroup}</span>
-                    </div>
-                    <div>
-                        <span className="text-[10px] text-gray-500 dark:text-gray-400">Top Crop Damage Cause: </span>
-                        <span className="text-xs font-semibold dark:text-white">{topCropDamageCause}</span>
-                    </div>
-                    <div>
+                        {topCropDamageCause && topCropDamageCause !== 'N/A' && (
+                            <>
+                                <span className="text-[10px] text-gray-500 dark:text-gray-400">(affected by {topCropDamageCause})</span>
+                            </>
+                        )}
+                        <span className="text-[10px] text-gray-500 dark:text-gray-400">•</span>
                         <span className="text-[10px] text-gray-500 dark:text-gray-400">Most Affected Barangay: </span>
                         <span className="text-xs font-semibold dark:text-white">{mostAffectedBarangay}</span>
                     </div>
@@ -310,20 +309,22 @@ interface AllocationCoverageKPICardProps {
     percentage: number;
     totalPlanned: number;
     totalDelivered: number;
+    topAllocationType: string;
+    topAllocationSource: string;
     topAllocatedCommodity: string;
     avgAllocationPerFarm: number;
     topAllocatedBarangays: string[];
-    topAllocationSource: string;
 }
 
 export function AllocationCoverageKPICard({
     percentage,
     totalPlanned,
     totalDelivered,
+    topAllocationType,
+    topAllocationSource,
     topAllocatedCommodity,
     avgAllocationPerFarm,
     topAllocatedBarangays,
-    topAllocationSource,
 }: AllocationCoverageKPICardProps) {
     return (
         <KPICard
@@ -336,8 +337,13 @@ export function AllocationCoverageKPICard({
             subheading={
                 <div className="space-y-2 mt-3">
                     <div>
-                        <span className="text-[10px] text-gray-500 dark:text-gray-400">Top Allocation Source: </span>
-                        <span className="text-xs font-semibold dark:text-white">{topAllocationSource}</span>
+                        <span className="text-[10px] text-gray-500 dark:text-gray-400">Top Allocation: </span>
+                        <span className="text-xs font-semibold dark:text-white">
+                            {topAllocationType}
+                            {topAllocationSource && topAllocationSource !== 'N/A' && (
+                                <span className="text-[10px] text-gray-500 dark:text-gray-400"> from ({topAllocationSource})</span>
+                            )}
+                        </span>
                     </div>
                     <div>
                         <span className="text-[10px] text-gray-500 dark:text-gray-400">Top Allocated Commodity: </span>

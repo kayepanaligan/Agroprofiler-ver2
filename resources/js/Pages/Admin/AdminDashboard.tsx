@@ -7,7 +7,7 @@ import PieChart from "@/Components/PieChart";
 import DonutChart from "@/Components/DonutChart";
 import Heatmap from "@/Components/Heatmap";
 import Dropdown from "@/Components/Dropdown";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, HelpCircle } from "lucide-react";
 import axios from "axios";
 import GroupedBarChart from "@/Components/GroupedBarChart";
 import AdminLayout from "@/Layouts/AdminLayout";
@@ -19,6 +19,43 @@ import {
     AllocationCoverageKPICard,
 } from "@/Components/KPICard";
 import { barangays } from "@/Utils/brgy";
+import AllocationVsDamageChart from "@/Components/AllocationVsDamageChart";
+import PolicyEffectivenessChart from "@/Components/PolicyEffectivenessChart";
+
+const PolicyEffectivenessTitle = () => {
+    const [showTooltip, setShowTooltip] = useState(false);
+
+    return (
+        <div className="flex items-center gap-2">
+            <span>Policy Effectiveness Analysis</span>
+            <div 
+                className="relative"
+                onMouseEnter={() => setShowTooltip(true)}
+                onMouseLeave={() => setShowTooltip(false)}
+            >
+                <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 cursor-help" />
+                {showTooltip && (
+                    <div className="absolute left-0 top-full mt-2 w-80 p-3 bg-gray-800 dark:bg-gray-900 text-white text-xs rounded-lg shadow-lg z-50">
+                        <div className="absolute bottom-full left-4 w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent border-b-gray-800 dark:border-b-gray-900"></div>
+                        <p className="mb-2">
+                            This scatter plot visualizes the correlation between crop damage and funding allocation per barangay.
+                        </p>
+                        <p className="mb-2">
+                            <strong>The Trend Line:</strong> Represents the "ideal" allocation strategy where funding increases linearly with damage.
+                        </p>
+                        <p className="mb-2">
+                            <strong>Outliers:</strong> Barangays significantly above the line are receiving more funding than their relative damage suggests, 
+                            while those significantly below the line may be under-resourced relative to their needs.
+                        </p>
+                        <p className="text-xs">
+                            Hover over each point to see detailed information, expected allocation, and deviation from the trend.
+                        </p>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
 
 interface Commodity {
     id: number;
@@ -160,6 +197,7 @@ interface DashboardProps extends PageProps {
             percentage: number;
             totalPlanned: number;
             totalDelivered: number;
+            topAllocationType: string;
             topAllocationSource: string;
             topAllocatedCommodity: string;
             avgAllocationPerFarm: number;
@@ -298,6 +336,20 @@ export default function Dashboard({
         malePercentage: number;
         femalePercentage: number;
     } | null>(null);
+    const [allocationVsDamageData, setAllocationVsDamageData] = useState<Array<{
+        barangay: string;
+        allocationAmount: number;
+        damagePercentage: number;
+        totalFarms: number;
+        damagedFarms: number;
+    }>>([]);
+    const [policyEffectivenessData, setPolicyEffectivenessData] = useState<Array<{
+        barangay: string;
+        allocationAmount: number;
+        damagePercentage: number;
+        totalFarms: number;
+        damagedFarms: number;
+    }>>([]);
     const [loading, setLoading] = useState(true);
 
     // Set default category to first one when data loads
@@ -347,6 +399,34 @@ export default function Dashboard({
         };
         fetchGenderData();
     }, [selectedGenderBarangay, dateFromProp, dateToProp]);
+
+    useEffect(() => {
+        const fetchAllocationVsDamageData = async () => {
+            try {
+                const url = `/admin/allocation-vs-damage-alignment?date_from=${dateFromProp || ''}&date_to=${dateToProp || ''}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                setAllocationVsDamageData(data);
+            } catch (error) {
+                console.error("Error fetching allocation vs damage data: ", error);
+            }
+        };
+        fetchAllocationVsDamageData();
+    }, [dateFromProp, dateToProp]);
+
+    useEffect(() => {
+        const fetchPolicyEffectivenessData = async () => {
+            try {
+                const url = `/admin/policy-effectiveness-analysis?date_from=${dateFromProp || ''}&date_to=${dateToProp || ''}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                setPolicyEffectivenessData(data);
+            } catch (error) {
+                console.error("Error fetching policy effectiveness data: ", error);
+            }
+        };
+        fetchPolicyEffectivenessData();
+    }, [dateFromProp, dateToProp]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -488,6 +568,7 @@ export default function Dashboard({
                             percentage={kpiData.allocationCoverage.percentage}
                             totalPlanned={kpiData.allocationCoverage.totalPlanned}
                             totalDelivered={kpiData.allocationCoverage.totalDelivered}
+                            topAllocationType={kpiData.allocationCoverage.topAllocationType}
                             topAllocationSource={kpiData.allocationCoverage.topAllocationSource}
                             topAllocatedCommodity={kpiData.allocationCoverage.topAllocatedCommodity}
                             avgAllocationPerFarm={kpiData.allocationCoverage.avgAllocationPerFarm}
@@ -748,6 +829,35 @@ export default function Dashboard({
                             title="Farmers by Age Group"
                             color="#10b981"
                         />
+                    </Card>
+                </div>
+
+                <div className="mb-4">
+                    <Card title="Allocation vs. Damage Alignment" className="w-full">
+                        <div className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+                            <p className="mb-2">
+                                This chart compares allocation amounts (blue bars) with crop damage percentages (red bars) per barangay.
+                            </p>
+                            <p className="mb-2">
+                                <strong>What to look for:</strong> Ideally, the heights of red bars (Damage %) and blue bars (Allocation) should follow a similar pattern. 
+                                Discrepancies indicate areas where allocation policy might need adjustment.
+                            </p>
+                            <p className="text-xs">
+                                Hover over each bar to see detailed information and alignment status.
+                            </p>
+                        </div>
+                        <AllocationVsDamageChart data={allocationVsDamageData} />
+                    </Card>
+                </div>
+
+                <div className="mb-4">
+                    <Card 
+                        title={
+                            <PolicyEffectivenessTitle />
+                        }
+                        className="w-full"
+                    >
+                        <PolicyEffectivenessChart data={policyEffectivenessData} />
                     </Card>
                 </div>
 

@@ -17,10 +17,27 @@ class AllocationTypeSeeder extends Seeder
         // AllocationType::truncate();
 
         $allocationTypes = include database_path('data/allocation_type.php');
-        $identifier = \App\Models\Identifier::first();
         $funding = \App\Models\Funding::first();
 
+        // Map allocation types to appropriate identifiers
+        $identifierMap = [
+            'Cash Assistance' => ['PHP', 'Peso'],
+            'Machinery Support' => ['Unit'],
+            'Fertilizer' => ['KG', 'Sack'],
+            'Seeds' => ['KG', 'Sack'],
+            'Pesticides' => ['KG', 'Sack'],
+        ];
+
         foreach ($allocationTypes as $allocationType) {
+            // Get appropriate identifier for this allocation type
+            $identifierTitles = $identifierMap[$allocationType['name']] ?? ['Unit'];
+            $identifier = \App\Models\Identifier::whereIn('title', $identifierTitles)->first();
+            
+            // Fallback to first identifier if none found
+            if (!$identifier) {
+                $identifier = \App\Models\Identifier::first();
+            }
+
             AllocationType::updateOrCreate(
                 ['name' => $allocationType['name']],
                 [

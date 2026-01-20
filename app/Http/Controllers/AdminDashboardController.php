@@ -547,35 +547,118 @@ public function indexResponse(Request $request) {
         ->orderByDesc('crop_damages_count')
         ->first();
 
-        $mostImpactedGroupQuery = DB::table('crop_damages')
-            ->join('farmers', 'crop_damages.farmer_id', '=', 'farmers.id');
-        if ($dateFrom && $dateTo) {
-            $mostImpactedGroupQuery->whereBetween('crop_damages.created_at', [$dateFrom, $dateTo]);
-        } elseif ($dateFrom) {
-            $mostImpactedGroupQuery->whereDate('crop_damages.created_at', '>=', $dateFrom);
-        } elseif ($dateTo) {
-            $mostImpactedGroupQuery->whereDate('crop_damages.created_at', '<=', $dateTo);
-        }
-        $mostImpactedGroup = $mostImpactedGroupQuery
-            ->select('farmers.status', DB::raw('COUNT(DISTINCT crop_damages.farmer_id) as affected_count'))
-            ->groupBy('farmers.status')
-            ->orderByDesc('affected_count')
-            ->first();
-
+        // Calculate most impacted group (PWD, 4Ps, or Senior Citizen) affected by top crop damage cause
         $topCropDamageCause = CropDamageCause::withCount(['cropDamages' => function($query) use ($applyDateFilter) {
             $applyDateFilter($query);
         }])
         ->orderByDesc('crop_damages_count')
         ->first();
 
-        $mostAffectedBarangayQuery = CropDamage::query();
-        $applyDateFilter($mostAffectedBarangayQuery);
-        $mostAffectedBarangay = $mostAffectedBarangayQuery
-            ->select('brgy_id', DB::raw('COUNT(*) as damage_count'))
-            ->groupBy('brgy_id')
-            ->orderByDesc('damage_count')
-            ->with('barangay')
-            ->first();
+        $mostImpactedGroupData = [];
+        if ($topCropDamageCause) {
+            $cropDamagesWithTopCause = CropDamage::where('crop_damage_cause_id', $topCropDamageCause->id);
+            $applyDateFilter($cropDamagesWithTopCause);
+            $farmerIds = $cropDamagesWithTopCause->distinct('farmer_id')->pluck('farmer_id');
+            
+            $farmers = Farmer::whereIn('id', $farmerIds)->get();
+            
+            $pwdCount = $farmers->where('pwd', 'yes')->count();
+            $fourPsCount = $farmers->where('4ps', 'yes')->count();
+            $seniorCitizenCount = $farmers->filter(function($farmer) {
+                if ($farmer->dob) {
+                    $birthDate = new \DateTime($farmer->dob);
+                    $today = new \DateTime();
+                    $age = $today->diff($birthDate)->y;
+                    return $age >= 60;
+                }
+                return false;
+            })->count();
+            
+            $mostImpactedGroupData = [
+                'PWD' => $pwdCount,
+                '4Ps' => $fourPsCount,
+                'Senior Citizen' => $seniorCitizenCount,
+            ];
+        }
+        
+        $mostImpactedGroup = null;
+        $mostImpactedGroupName = 'N/A';
+        if (!empty($mostImpactedGroupData)) {
+            $maxCount = max($mostImpactedGroupData);
+            if ($maxCount > 0) {
+                $mostImpactedGroupName = array_search($maxCount, $mostImpactedGroupData);
+                $mostImpactedGroup = (object)[
+                    'group' => $mostImpactedGroupName,
+                    'count' => $maxCount,
+                ];
+            }
+        }
+
+        // Most Affected Barangay - where the most impacted group belongs to
+        $mostAffectedBarangay = null;
+        $mostAffectedBarangayName = 'N/A';
+        if ($mostImpactedGroup && $topCropDamageCause) {
+            $cropDamagesWithTopCause = CropDamage::where('crop_damage_cause_id', $topCropDamageCause->id);
+            $applyDateFilter($cropDamagesWithTopCause);
+            $farmerIds = $cropDamagesWithTopCause->distinct('farmer_id')->pluck('farmer_id');
+            
+            $farmersQuery = Farmer::whereIn('id', $farmerIds);
+            
+            // Filter by most impacted group
+            if ($mostImpactedGroupName === 'PWD') {
+                $farmersQuery->where('pwd', 'yes');
+            } elseif ($mostImpactedGroupName === '4Ps') {
+                $farmersQuery->where('4ps', 'yes');
+            } elseif ($mostImpactedGroupName === 'Senior Citizen') {
+                $farmersQuery->whereNotNull('dob');
+            }
+            
+            $farmers = $farmersQuery->get();
+            
+            // For Senior Citizen, filter by age in PHP since SQLite doesn't support age calculation easily
+            if ($mostImpactedGroupName === 'Senior Citizen') {
+                $farmers = $farmers->filter(function($farmer) {
+                    $birthDate = new \DateTime($farmer->dob);
+                    $today = new \DateTime();
+                    $age = $today->diff($birthDate)->y;
+                    return $age >= 60;
+                });
+            }
+            
+            $filteredFarmerIds = $farmers->pluck('id');
+            
+            if ($filteredFarmerIds->isNotEmpty()) {
+                $barangayCounts = DB::table('farmers')
+                    ->whereIn('id', $filteredFarmerIds)
+                    ->select('brgy_id', DB::raw('COUNT(*) as count'))
+                    ->groupBy('brgy_id')
+                    ->orderByDesc('count')
+                    ->first();
+                
+                if ($barangayCounts) {
+                    $barangay = Barangay::find($barangayCounts->brgy_id);
+                    $mostAffectedBarangay = $barangay;
+                    $mostAffectedBarangayName = $barangay ? $barangay->name : 'N/A';
+                }
+            }
+        }
+        
+        // Fallback to overall most affected barangay if no group-specific data
+        if (!$mostAffectedBarangay) {
+            $mostAffectedBarangayQuery = CropDamage::query();
+            $applyDateFilter($mostAffectedBarangayQuery);
+            $mostAffectedBarangayResult = $mostAffectedBarangayQuery
+                ->select('brgy_id', DB::raw('COUNT(*) as damage_count'))
+                ->groupBy('brgy_id')
+                ->orderByDesc('damage_count')
+                ->with('barangay')
+                ->first();
+            
+            if ($mostAffectedBarangayResult && $mostAffectedBarangayResult->barangay) {
+                $mostAffectedBarangay = $mostAffectedBarangayResult->barangay;
+                $mostAffectedBarangayName = $mostAffectedBarangayResult->barangay->name;
+            }
+        }
 
         // 4. Allocation Distribution Coverage KPI
         $totalAllocationPlanned = AllocationType::sum('amount');
@@ -588,48 +671,77 @@ public function indexResponse(Request $request) {
             ? round(($totalAllocationDelivered / $totalAllocationPlanned) * 100, 1) 
             : 0;
 
-        $topAllocatedCommodityQuery = Allocation::where('received', 'yes');
+        // Find top allocation type by total amount received
+        $topAllocationTypeQuery = Allocation::where('received', 'yes');
         if ($dateFrom || $dateTo) {
-            $applyDateFilter($topAllocatedCommodityQuery, 'date_received');
+            $applyDateFilter($topAllocationTypeQuery, 'date_received');
         }
-        $topAllocatedCommodity = $topAllocatedCommodityQuery
-            ->select('commodity_id', DB::raw('COUNT(*) as allocation_count'))
-            ->groupBy('commodity_id')
-            ->orderByDesc('allocation_count')
-            ->with('commodity')
+        $topAllocationTypeResult = $topAllocationTypeQuery
+            ->select('allocation_type_id', DB::raw('SUM(CAST(amount AS DECIMAL(10,2))) as total_amount'))
+            ->groupBy('allocation_type_id')
+            ->orderByDesc('total_amount')
+            ->with('allocationType.funding')
             ->first();
 
-        $totalFarmsWithAllocationsQuery = Allocation::where('received', 'yes');
-        if ($dateFrom || $dateTo) {
-            $applyDateFilter($totalFarmsWithAllocationsQuery, 'date_received');
-        }
-        $totalFarmsWithAllocations = $totalFarmsWithAllocationsQuery->distinct('farmer_id')->count('farmer_id');
-        $avgAllocationPerFarm = $totalFarmsWithAllocations > 0 
-            ? round($totalAllocationDelivered / $totalFarmsWithAllocations, 2) 
-            : 0;
+        $topAllocationType = null;
+        $topAllocationTypeName = 'N/A';
+        $topAllocationSource = 'N/A';
+        $topAllocatedCommodity = 'N/A';
+        $avgAllocationPerFarm = 0;
+        $topAllocatedBarangays = [];
 
-        $topAllocatedBarangaysQuery = Allocation::where('received', 'yes');
-        if ($dateFrom || $dateTo) {
-            $applyDateFilter($topAllocatedBarangaysQuery, 'date_received');
-        }
-        $topAllocatedBarangays = $topAllocatedBarangaysQuery
-            ->select('brgy_id', DB::raw('SUM(CAST(amount AS DECIMAL(10,2))) as total_amount'))
-            ->groupBy('brgy_id')
-            ->orderByDesc('total_amount')
-            ->with('barangay')
-            ->limit(3)
-            ->get();
+        if ($topAllocationTypeResult && $topAllocationTypeResult->allocationType) {
+            $topAllocationType = $topAllocationTypeResult->allocationType;
+            $topAllocationTypeName = $topAllocationType->name;
+            $topAllocationSource = $topAllocationType->funding ? $topAllocationType->funding->name : 'N/A';
 
-        $topAllocationSourceQuery = Allocation::where('received', 'yes');
-        if ($dateFrom || $dateTo) {
-            $applyDateFilter($topAllocationSourceQuery, 'date_received');
+            // Find which commodity received the most of this top allocation type
+            $topCommodityForTypeQuery = Allocation::where('received', 'yes')
+                ->where('allocation_type_id', $topAllocationType->id);
+            if ($dateFrom || $dateTo) {
+                $applyDateFilter($topCommodityForTypeQuery, 'date_received');
+            }
+            $topCommodityForType = $topCommodityForTypeQuery
+                ->select('commodity_id', DB::raw('SUM(CAST(amount AS DECIMAL(10,2))) as total_amount'))
+                ->groupBy('commodity_id')
+                ->orderByDesc('total_amount')
+                ->with('commodity')
+                ->first();
+
+            if ($topCommodityForType && $topCommodityForType->commodity) {
+                $topAllocatedCommodity = $topCommodityForType->commodity->name;
+            }
+
+            // Calculate avg allocation per farm for this allocation type
+            $totalFarmsWithThisTypeQuery = Allocation::where('received', 'yes')
+                ->where('allocation_type_id', $topAllocationType->id);
+            if ($dateFrom || $dateTo) {
+                $applyDateFilter($totalFarmsWithThisTypeQuery, 'date_received');
+            }
+            $totalFarmsWithThisType = $totalFarmsWithThisTypeQuery->distinct('farmer_id')->count('farmer_id');
+            $totalAmountForThisType = $topAllocationTypeResult->total_amount;
+            $avgAllocationPerFarm = $totalFarmsWithThisType > 0 
+                ? round($totalAmountForThisType / $totalFarmsWithThisType, 2) 
+                : 0;
+
+            // Find top barangay(s) who received the most of this allocation type
+            $topBarangaysForTypeQuery = Allocation::where('received', 'yes')
+                ->where('allocation_type_id', $topAllocationType->id);
+            if ($dateFrom || $dateTo) {
+                $applyDateFilter($topBarangaysForTypeQuery, 'date_received');
+            }
+            $topBarangaysForType = $topBarangaysForTypeQuery
+                ->select('brgy_id', DB::raw('SUM(CAST(amount AS DECIMAL(10,2))) as total_amount'))
+                ->groupBy('brgy_id')
+                ->orderByDesc('total_amount')
+                ->with('barangay')
+                ->limit(3)
+                ->get();
+
+            $topAllocatedBarangays = $topBarangaysForType->map(function($item) {
+                return $item->barangay ? $item->barangay->name : 'N/A';
+            })->filter(fn($name) => $name !== 'N/A')->toArray();
         }
-        $topAllocationSource = $topAllocationSourceQuery
-            ->select('funding_id', DB::raw('SUM(CAST(amount AS DECIMAL(10,2))) as total_amount'))
-            ->groupBy('funding_id')
-            ->orderByDesc('total_amount')
-            ->with('funding')
-            ->first();
 
         return Inertia::render('Admin/AdminDashboard', [
             'totalAllocations' => $totalAllocations,
@@ -670,20 +782,19 @@ public function indexResponse(Request $request) {
                     'percentage' => $cropDamagePercentage,
                     'intensityPercentages' => $intensityPercentages,
                     'mostAffectedCommodity' => $mostAffectedCommodity ? $mostAffectedCommodity->name : 'N/A',
-                    'mostImpactedGroup' => $mostImpactedGroup ? ucfirst($mostImpactedGroup->status) : 'N/A',
+                    'mostImpactedGroup' => $mostImpactedGroupName,
                     'topCropDamageCause' => $topCropDamageCause ? $topCropDamageCause->name : 'N/A',
-                    'mostAffectedBarangay' => $mostAffectedBarangay && $mostAffectedBarangay->barangay ? $mostAffectedBarangay->barangay->name : 'N/A',
+                    'mostAffectedBarangay' => $mostAffectedBarangayName,
                 ],
                 'allocationCoverage' => [
                     'percentage' => $allocationCoverage,
                     'totalPlanned' => $totalAllocationPlanned,
                     'totalDelivered' => $totalAllocationDelivered,
-                    'topAllocationSource' => $topAllocationSource && $topAllocationSource->funding ? $topAllocationSource->funding->name : 'N/A',
-                    'topAllocatedCommodity' => $topAllocatedCommodity && $topAllocatedCommodity->commodity ? $topAllocatedCommodity->commodity->name : 'N/A',
+                    'topAllocationType' => $topAllocationTypeName,
+                    'topAllocationSource' => $topAllocationSource,
+                    'topAllocatedCommodity' => $topAllocatedCommodity,
                     'avgAllocationPerFarm' => $avgAllocationPerFarm,
-                    'topAllocatedBarangays' => $topAllocatedBarangays->map(function($item) {
-                        return $item->barangay ? $item->barangay->name : 'N/A';
-                    })->filter(fn($name) => $name !== 'N/A')->toArray(),
+                    'topAllocatedBarangays' => $topAllocatedBarangays,
                 ],
             ],
         ]);
@@ -793,6 +904,76 @@ public function indexResponse(Request $request) {
             'malePercentage' => $total > 0 ? round(($maleCount / $total) * 100, 2) : 0,
             'femalePercentage' => $total > 0 ? round(($femaleCount / $total) * 100, 2) : 0,
         ]);
+    }
+
+    public function allocationVsDamageAlignment(Request $request)
+    {
+        $dateFrom = $request->query('date_from');
+        $dateTo = $request->query('date_to');
+
+        // Helper closure for date range filtering
+        $applyDateFilter = function($query, $dateColumn = 'created_at') use ($dateFrom, $dateTo) {
+            if ($dateFrom && $dateTo) {
+                $query->whereBetween($dateColumn, [$dateFrom, $dateTo]);
+            } elseif ($dateFrom) {
+                $query->whereDate($dateColumn, '>=', $dateFrom);
+            } elseif ($dateTo) {
+                $query->whereDate($dateColumn, '<=', $dateTo);
+            }
+            return $query;
+        };
+
+        $barangays = Barangay::all();
+        $result = [];
+
+        foreach ($barangays as $barangay) {
+            // Calculate total allocation amount for this barangay
+            $allocationQuery = Allocation::where('brgy_id', $barangay->id);
+            if ($dateFrom || $dateTo) {
+                $applyDateFilter($allocationQuery);
+            }
+            $totalAllocationAmount = $allocationQuery->sum(DB::raw("CAST(amount AS DECIMAL(10,2))"));
+
+            // Calculate damage percentage for this barangay
+            $barangayFarmsQuery = Farm::where('brgy_id', $barangay->id);
+            if ($dateFrom || $dateTo) {
+                $applyDateFilter($barangayFarmsQuery);
+            }
+            $totalFarmsInBarangay = $barangayFarmsQuery->count();
+
+            $barangayCropDamagesQuery = CropDamage::where('brgy_id', $barangay->id);
+            if ($dateFrom || $dateTo) {
+                $applyDateFilter($barangayCropDamagesQuery);
+            }
+            $damagedFarmsInBarangay = (clone $barangayCropDamagesQuery)
+                ->distinct('farm_id')
+                ->count('farm_id');
+
+            $damagePercentage = $totalFarmsInBarangay > 0
+                ? round(($damagedFarmsInBarangay / $totalFarmsInBarangay) * 100, 2)
+                : 0;
+
+            $result[] = [
+                'barangay' => $barangay->name,
+                'allocationAmount' => (float) $totalAllocationAmount,
+                'damagePercentage' => $damagePercentage,
+                'totalFarms' => $totalFarmsInBarangay,
+                'damagedFarms' => $damagedFarmsInBarangay,
+            ];
+        }
+
+        // Sort by barangay name
+        usort($result, function($a, $b) {
+            return strcmp($a['barangay'], $b['barangay']);
+        });
+
+        return response()->json($result);
+    }
+
+    public function policyEffectivenessAnalysis(Request $request)
+    {
+        // Reuse the same logic as allocationVsDamageAlignment
+        return $this->allocationVsDamageAlignment($request);
     }
 
     public function commodityCounts()

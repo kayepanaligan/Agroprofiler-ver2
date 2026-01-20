@@ -72,16 +72,17 @@ const PieChart: React.FC<PieChartProps> = ({
                     <p
                         style={{
                             margin: 0,
-                            fontWeight: "semi-bold",
+                            marginBottom: "6px",
+                            fontWeight: "bold",
                             fontSize: "14px",
                         }}
                     >
                         {payload[0].name}
                     </p>
-                    <p style={{ margin: 0, fontSize: "12px" }}>
+                    <p style={{ margin: 0, marginBottom: "4px", fontSize: "12px" }}>
                         Count: {value.toLocaleString()}
                     </p>
-                    <p style={{ margin: 0, fontSize: "12px" }}>
+                    <p style={{ margin: 0, fontSize: "12px", fontWeight: "600", color: isDarkMode ? "#4ade80" : "#16a34a" }}>
                         Percentage: {percentage}%
                     </p>
                 </div>

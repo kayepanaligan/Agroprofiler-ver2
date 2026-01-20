@@ -220,6 +220,8 @@ Route::middleware(['auth', 'admin'])->group(function(){
 
     Route::get('/admin/commoditycategorycounts', [AdminDashboardController::class, 'commodityCategoryCounts']);
     Route::get('/admin/farmer-gender-distribution', [AdminDashboardController::class, 'farmerGenderDistribution']);
+    Route::get('/admin/allocation-vs-damage-alignment', [AdminDashboardController::class, 'allocationVsDamageAlignment']);
+    Route::get('/admin/policy-effectiveness-analysis', [AdminDashboardController::class, 'policyEffectivenessAnalysis']);
     Route::get('/admin/showResponseDashboard', [DashboardController::class, 'showResponseDashboard']);
     Route::get('/admin/allocation-type-counts', [DashboardController::class, 'getAllocationTypeCounts']);
 
@@ -511,6 +513,8 @@ Route::middleware(['auth', 'super admin'])->group(function () {
 
     Route::get('/commoditycategorycounts', [DashboardController::class, 'commodityCategoryCounts']);
     Route::get('/farmer-gender-distribution', [DashboardController::class, 'farmerGenderDistribution']);
+    Route::get('/allocation-vs-damage-alignment', [DashboardController::class, 'allocationVsDamageAlignment']);
+    Route::get('/policy-effectiveness-analysis', [DashboardController::class, 'policyEffectivenessAnalysis']);
     Route::get('/showResponseDashboard', [DashboardController::class, 'showResponseDashboard']);
     Route::get('/allocation-type-counts', [DashboardController::class, 'getAllocationTypeCounts']);
 
