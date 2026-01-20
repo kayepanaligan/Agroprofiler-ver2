@@ -1,0 +1,38 @@
+[
+    {
+        "type": "rice",
+        "name": "Rice Farmer 1",
+        "lat": 6.755,
+        "lng": 125.347
+    },
+    {
+        "type": "rice",
+        "name": "Rice Farmer 2",
+        "lat": 6.757,
+        "lng": 125.35
+    },
+    {
+        "type": "corn",
+        "name": "Corn Farmer 1",
+        "lat": 6.759,
+        "lng": 125.34
+    },
+    {
+        "type": "corn",
+        "name": "Corn Farmer 2",
+        "lat": 6.762,
+        "lng": 125.342
+    },
+    {
+        "type": "fishery",
+        "name": "Fishery Farmer 1",
+        "lat": 6.758,
+        "lng": 125.355
+    },
+    {
+        "type": "fishery",
+        "name": "Fishery Farmer 2",
+        "lat": 6.76,
+        "lng": 125.358
+    }
+]

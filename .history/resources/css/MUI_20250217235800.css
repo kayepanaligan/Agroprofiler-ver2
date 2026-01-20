@@ -1,0 +1,8 @@
+/* Override the DataGrid row focus outline */
+.MuiDataGrid-root .MuiDataGrid-cell:focus {
+    outline: none; /* Remove the blue outline */
+}
+
+.MuiDataGrid-root .MuiDataGrid-cell:hover {
+    background-color: black; /* Ensure no background color on hover */
+}

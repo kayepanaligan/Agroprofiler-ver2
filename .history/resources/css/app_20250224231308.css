@@ -1,0 +1,671 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+    .scrollbar-none {
+        scrollbar-width: none; /* Firefox */
+    }
+
+    .scrollbar-none::-webkit-scrollbar {
+        display: none; /* Chrome, Safari */
+    }
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: "Poppins", sans-serif;
+}
+
+select {
+    background-color: white;
+    color: black;
+}
+
+.dark select {
+    background-color: #333;
+    color: white;
+    border: 1px solid #555;
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+    display: none;
+}
+
+.scrollbar-hidden {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+div::-webkit-scrollbar {
+    display: none;
+}
+
+body {
+    background-color: #f3f4f6;
+    transition: background-color 0.3s ease-in-out;
+}
+
+.data-grid {
+    background-color: black;
+    color: white;
+}
+
+.dark .data-grid .MuiDataGrid-columnHeaders {
+    background-color: #f5f5f5;
+    color: #000000;
+}
+
+.dark .data-grid {
+    background-color: #222;
+    color: white;
+}
+
+.dark .MuiDataGrid-columnHeaders {
+    background-color: transparent;
+    color: white;
+}
+
+.dark body {
+    background-color: #1a1d21;
+}
+
+.main-bg {
+    background-image: url("../js/Assets/main-bg.jpg");
+    background-size: cover;
+    background-position: center;
+    border-radius: 10px;
+}
+
+.right-bg {
+    background-image: url("../js/Assets/another-bg.jpg");
+    background-size: cover;
+    background-position: center;
+    border-radius: 10px;
+}
+
+/* ✅ Override DataGrid row focus */
+.MuiDataGrid-root .MuiDataGrid-cell:focus {
+    outline: none !important; /* Remove the blue outline */
+}
+
+/* ✅ Ensure no background color on hover */
+.MuiDataGrid-root .MuiDataGrid-cell:hover {
+    background-color: transparent !important;
+}
+
+/* ✅ Default light mode text color */
+.MuiDataGrid-root .MuiDataGrid-cell {
+    color: black !important;
+}
+
+/* ✅ Make column headers fully transparent */
+.MuiDataGrid-root .MuiDataGrid-columnHeaders {
+    background-color: transparent !important;
+    box-shadow: none !important;
+    color: none !important;
+}
+
+/* ✅ Dark Mode Styles */
+.dark .MuiDataGrid-root .MuiDataGrid-cell {
+    color: white !important;
+}
+
+/* ✅ Ensure transparent headers in dark mode */
+.dark .MuiDataGrid-root .MuiDataGrid-columnHeaders {
+    background-color: transparent !important;
+    color: black !important;
+}
+
+/* ✅ Change the pagination text color to white */
+.MuiDataGrid-root .MuiPagination-root {
+    color: white !important;
+}
+
+/* ✅ Change the pagination button text color */
+.MuiDataGrid-root .MuiPaginationItem-root {
+    color: white !important; /* Text color of pagination numbers */
+}
+
+/* ✅ Change the background of pagination button on hover */
+.MuiDataGrid-root .MuiPaginationItem-root:hover {
+    background-color: #5cb338 !important; /* Green background on hover */
+}
+
+/* ✅ Style for selected (active) pagination button */
+.dark .MuiDataGrid-root .MuiPaginationItem-root.Mui-selected {
+    background-color: #5cb338 !important; /* Green background for selected page */
+    color: white !important; /* White text for active page */
+}
+
+/* ✅ Dark mode pagination text color */
+.dark .MuiDataGrid-root .MuiPagination-root {
+    color: white !important;
+}
+
+/* ✅ Dark mode pagination item text color */
+.dark .MuiDataGrid-root .MuiPaginationItem-root {
+    color: white !important;
+}
+
+/* ✅ Dark mode pagination hover effect */
+.dark .MuiDataGrid-root .MuiPaginationItem-root:hover {
+    background-color: #5cb338 !important; /* Green background on hover */
+}
+
+/* ✅ Dark mode selected pagination item */
+.dark .MuiDataGrid-root .MuiPaginationItem-root.Mui-selected {
+    background-color: #5cb338 !important; /* Green background for selected page */
+    color: white !important; /* White text for active page */
+}
+
+.dark
+    .MuiTablePagination-selectLabel
+    css-s09cke-MuiTablePagination-selectLabel {
+    color: white !important;
+}
+
+.MuiTablePagination-input {
+    color: white;
+}
+
+.MuiSlider-root {
+    color: #20b2aa;
+}
+
+.MuiSlider-root:hover {
+    color: #2e8b57;
+}
+
+.MuiTablePagination-selectIcon {
+    color: white;
+}
+
+.MuiTablePagination-selectRoot {
+    color: white;
+}
+
+/* ✅ Checkbox color in light mode */
+.MuiDataGrid-root .MuiCheckbox-root {
+    color: rgb(29, 52, 23) !important; /* Green checkbox */
+}
+
+/* ✅ Checkbox color when checked */
+.MuiDataGrid-root .MuiCheckbox-root.Mui-checked {
+    color: #38b548 !important; /* Green checkboxes when checked */
+}
+
+/* ✅ Dark mode checkbox color */
+.dark .MuiDataGrid-root .MuiCheckbox-root {
+    color: white !important; /* White checkbox */
+}
+
+/* ✅ Checkbox color when checked in dark mode */
+.dark .MuiDataGrid-root .MuiCheckbox-root.Mui-checked {
+    color: white !important;
+}
+
+/* ✅ Customizing the QuickFilter Input */
+.MuiDataGrid-toolbarContainer .MuiInputBase-root {
+    background-color: transparent !important;
+    color: black !important;
+    font-family: "Poppins", sans-serif !important;
+    font-size: 14px !important;
+    padding: 4px;
+}
+
+/* ✅ QuickFilter Text in Dark Mode */
+.dark .MuiDataGrid-toolbarContainer .MuiInputBase-root {
+    color: white !important;
+}
+
+/* ✅ Customize the GridToolbar buttons */
+.MuiDataGrid-toolbarContainer button {
+    /* color: #5cb338 !important; */
+    font-family: "Poppins", sans-serif !important;
+}
+
+/* ✅ Dark Mode for GridToolbar buttons */
+.dark .MuiDataGrid-toolbarContainer button {
+    color: white !important;
+}
+
+/* ✅ Remove shadow from header cells */
+.MuiDataGrid-columnHeadersInner {
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+
+/* ✅ Change header text color */
+.MuiDataGrid-columnHeaderTitle {
+    color: black !important;
+    background-color: transparent !important;
+    font-family: "Poppins", sans-serif !important;
+    font-weight: bold !important;
+}
+
+/* ✅ Dark Mode Header Text Color */
+.dark .MuiDataGrid-columnHeaderTitle {
+    color: black !important;
+}
+
+/* ✅ MUI Dropdown Fixes (Filters, Columns, Density, etc.) */
+.MuiPopper-root .MuiPaper-root {
+    background-color: white !important;
+    color: black !important;
+    font-family: "Poppins", sans-serif !important;
+    border-radius: 8px !important;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* ✅ Dark Mode for Dropdowns */
+.dark .MuiPopper-root .MuiPaper-root {
+    background-color: #2c2c2c !important;
+    color: white !important;
+    box-shadow: 0px 4px 10px rgba(255, 255, 255, 0.1) !important;
+}
+
+/* ✅ Fix MUI Dropdown Menu Items */
+.MuiPopper-root .MuiMenuItem-root {
+    font-size: 14px !important;
+    padding: 10px 15px !important;
+}
+
+/* ✅ Dark Mode for Dropdown Menu Items */
+.dark .MuiPopper-root .MuiMenuItem-root {
+    color: white !important;
+}
+
+/* ✅ Highlight hover effect on dropdowns */
+.MuiPopper-root .MuiMenuItem-root:hover {
+    background-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* ✅ Dark Mode Hover Effect */
+.dark .MuiPopper-root .MuiMenuItem-root:hover {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* ✅ Remove the blue outline for focused checkbox */
+.MuiDataGrid-root .MuiCheckbox-root.Mui-focusVisible {
+    outline: 2px solid #5cb338 !important; /* Green outline when focused */
+}
+
+/* ✅ Change checkbox color when checked */
+.MuiDataGrid-root .MuiCheckbox-root.Mui-checked {
+    color: #5cb338 !important; /* Green when checked */
+}
+
+/* ✅ Change color of the column filter and density menu items */
+.dark .MuiPopper-root .MuiPaper-root {
+    background-color: #2c2c2c !important; /* Dark background for the popups */
+    color: white !important; /* White text */
+    font-family: "Poppins", sans-serif !important;
+    border-radius: 8px !important;
+    box-shadow: 0px 4px 10px rgba(255, 255, 255, 0.1) !important;
+}
+
+/* ✅ MUI Column Menu (Filter, Density) Dropdown - Change background to dark */
+.dark .MuiDataGrid-root .MuiMenuItem-root {
+    background-color: transparent !important;
+    color: white !important; /* Text color inside the menu */
+    font-family: "Poppins", sans-serif !important;
+}
+
+/* ✅ Hover effect for column menu and filter items */
+.dark .MuiDataGrid-root .MuiMenuItem-root:hover {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* ✅ Dark Mode Styles for Filter & Column Dropdowns */
+.dark .MuiDataGrid-root .MuiMenuItem-root {
+    color: white !important;
+    background-color: transparent !important;
+}
+
+/* ✅ Dark mode hover effect for Filter & Column Dropdown */
+.dark .MuiDataGrid-root .MuiMenuItem-root:hover {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* ✅ Focused column filter input field */
+.MuiDataGrid-toolbarContainer .MuiInputBase-root.Mui-focused {
+    outline: 2px solid #5cb338 !important; /* Green outline when focused */
+}
+
+/* ✅ Quick Filter Text Field in Dark Mode */
+.dark .MuiDataGrid-toolbarContainer .MuiInputBase-root {
+    background-color: transparent !important;
+    color: white !important;
+    font-family: "Poppins", sans-serif !important;
+    font-size: 14px !important;
+}
+
+/* ✅ MUI Column Header */
+.MuiDataGrid-columnHeaderTitle {
+    color: black !important; /* Header text color */
+    font-family: "Poppins", sans-serif !important;
+}
+
+.dark .MuiDataGrid-columnHeaderTitle {
+    color: white !important; /* Header text color */
+    /* background-color: black !important; */
+    font-family: "Poppins", sans-serif !important;
+}
+
+.dark .MuiDataGrid-columnHeader {
+    background-color: #0d1a25 !important;
+}
+
+/* ✅ MUI Popper Dropdown (Column Filter) */
+.MuiDataGrid-root .MuiMenuItem-root {
+    color: white !important;
+    font-family: "Poppins", sans-serif !important;
+}
+
+/* ✅ Change Filter Pop-up Text to White */
+.MuiDataGrid-root .MuiMenuItem-root .MuiTypography-root {
+    color: white !important; /* Filter text inside the pop-up */
+}
+
+/* ✅ Column Header Pop-up (Checkboxes, Filters) - Dark Mode */
+.dark .MuiDataGrid-root .MuiCheckbox-root.Mui-checked {
+    color: #5cb338 !important; /* Green checkboxes when checked in dark mode */
+}
+
+/* ✅ Column header focused outline for checkboxes */
+.MuiCheckbox-root.Mui-focusVisible {
+    outline: 2px solid #5cb338 !important; /* Green outline */
+}
+
+/* ✅ Remove outline from MUI pop-ups */
+.MuiPopper-root .MuiPaper-root:focus {
+    outline: none !important;
+}
+
+.MuiDataGrid-topContainer MuiDataGrid-container--top css-9dbfce {
+    background-color: transparent !important;
+}
+
+.MuiDataGrid-columnHeaders css-1gtv474-MuiDataGrid-columnHeaders {
+    background-color: transparent !important;
+}
+
+.MuiDataGrid-columnHeaderTitleContainer {
+    background-color: none !important;
+}
+
+/* ✅ MUI Column Menu (Filter, Density) Dropdown - Dark Mode */
+.dark .MuiDataGrid-root .MuiMenuItem-root {
+    color: white !important;
+    background-color: transparent !important;
+}
+
+/* Default (Light Mode) Styles */
+.custom-select {
+    color: black !important;
+    border: 1px solid black !important;
+    background-color: transparent !important;
+}
+
+/* Dark Mode Styles */
+.dark .custom-select {
+    color: white !important;
+    border: 1px solid white !important;
+    background-color: transparent !important;
+}
+
+/* Ensure border color remains white on hover and focus */
+.dark .custom-select .MuiOutlinedInput-notchedOutline {
+    border-color: white !important;
+}
+
+.dark .custom-select:hover .MuiOutlinedInput-notchedOutline,
+.dark .custom-select.Mui-focused .MuiOutlinedInput-notchedOutline {
+    border-color: white !important;
+}
+
+.dark .css-13cymwt-control {
+    background-color: transparent;
+}
+
+.dark select:hover {
+    border-color: #45a049;
+}
+
+select:hover {
+    border-color: #45a049;
+}
+
+::after & ::before select {
+    border-color: #45a049;
+}
+
+.dark select option {
+    background: transparent;
+    color: black;
+    padding: 10px; /* Works only in some browsers */
+}
+
+/* Highlight the selected option */
+.dark select option:checked {
+    background-color: transparent;
+    color: white;
+}
+
+.dark select option:hover {
+    background-color: transparent;
+    color: white;
+}
+
+::after & ::before select:hover {
+    border-color: #45a049;
+}
+
+select:focus {
+    outline: none;
+    border-color: #45a049;
+    box-shadow: 0 0 5px rgba(33, 150, 243, 0.5);
+}
+
+.dark select {
+    appearance: none; /* Removes default styling */
+    -webkit-appearance: none; /* Safari */
+    -moz-appearance: none; /* Firefox */
+    background-color: transparent;
+    border: 1px solid white;
+    border-radius: 8px;
+    color: white;
+    padding: 8px 12px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+/* Default Select Styles */
+.custom-select .MuiSelect-select {
+    background-color: transparent !important;
+    color: black !important;
+}
+
+/* Dark Mode Styles */
+.dark .custom-select .MuiSelect-select {
+    background-color: transparent !important;
+    color: white !important;
+}
+
+/* Override Dropdown Menu (MuiPaper-root) */
+.custom-select-dropdown .MuiPaper-root {
+    background-color: transparent !important;
+    color: white !important;
+}
+
+/* Dark Mode Dropdown */
+.dark .custom-select-dropdown .MuiPaper-root {
+    background-color: rgba(0, 0, 0, 0.8) !important; /* Transparent black */
+    color: white !important;
+}
+
+/* Light Mode */
+.react-select__control {
+    background-color: transparent !important;
+    color: black !important;
+    border: 1px solid #ccc !important;
+}
+
+.react-select__menu {
+    background-color: white !important;
+    color: black !important;
+}
+
+/* Dark Mode */
+.dark .react-select__control {
+    background-color: transparent !important;
+    color: white !important;
+    border: 1px solid #888 !important;
+}
+
+.dark .react-select__menu {
+    background-color: rgba(0, 0, 0, 0.8) !important; /* Transparent Black */
+    color: white !important;
+}
+
+/* Default Light Mode */
+select {
+    background-color: white;
+    color: black;
+    border: 1px solid #ccc;
+}
+
+/* Dark Mode */
+.dark select {
+    background-color: transparent;
+    color: white;
+    border: 1px solid #888;
+}
+
+/* Dropdown options */
+.dark option {
+    background-color: #222; /* Darker background */
+    color: white;
+}
+
+/* Default Light Mode */
+.MuiModal-root {
+    background-color: rgba(0, 0, 0, 0.5); /* Default semi-transparent overlay */
+}
+
+/* Dark Mode */
+.dark .MuiModal-root {
+    background-color: rgba(0, 0, 0, 0.7); /* Darker overlay for dark mode */
+}
+
+.dark .MuiPaper-root {
+    background-color: #122231 !important; /* Dark mode modal background */
+    color: white !important; /* Ensure text remains readable */
+    border: 1px solid #1f3a4b; /* Optional border styling */
+}
+
+/* Default MUI TextField Styles */
+.MuiOutlinedInput-root {
+    color: black; /* Default text color */
+    border-color: gray; /* Default border */
+}
+
+/* Dark Mode: Change text to white & border to green */
+.dark .MuiOutlinedInput-root {
+    color: white !important; /* Text color */
+    border-color: green !important; /* Border color */
+}
+
+/* Change border to green on hover */
+.dark .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+    border-color: green !important;
+}
+
+/* Change border to green on focus */
+.dark .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+    border-color: green !important;
+}
+
+/* Change label color to white */
+.dark .MuiInputLabel-root {
+    color: white !important;
+}
+
+/* Ensure label stays white when focused */
+.dark .MuiInputLabel-root.Mui-focused {
+    color: green !important;
+}
+
+/* Default MUI Button Styles */
+.MuiButton-root {
+    background-color: green !important;
+    color: white !important; /* Ensure text is white */
+    transition: background-color 0.3s ease-in-out;
+}
+
+/* Dark Mode: Keep green background */
+.dark .MuiButton-root {
+    background-color: green !important;
+    color: white !important;
+}
+
+/* Change background on hover */
+.MuiButton-root:hover {
+    background-color: #0f8a2e !important; /* Slightly darker green on hover */
+}
+
+/* Change background on focus */
+.MuiButton-root:focus {
+    background-color: #0c7224 !important;
+}
+
+/* Default Autocomplete Border */
+.MuiAutocomplete-root .MuiOutlinedInput-root {
+    border-color: green !important; /* Default green border */
+}
+
+/* On Focus: Change border color */
+.MuiAutocomplete-root .MuiOutlinedInput-root.Mui-focused {
+    border-color: green !important;
+}
+
+/* Text color */
+.MuiAutocomplete-root .MuiInputBase-input {
+    color: white !important; /* White text for dark mode */
+}
+
+/* Dark Mode: Keep green border */
+.dark .MuiAutocomplete-root .MuiOutlinedInput-root {
+    border-color: green !important;
+}
+
+/* Change label color in dark mode */
+.dark .MuiInputLabel-root {
+    color: white !important;
+}
+
+/* Change dropdown menu background in dark mode */
+.dark .MuiAutocomplete-popper {
+    background-color: #122231 !important; /* Dark mode dropdown bg */
+}
+
+.for_light_theme {
+    --primary-color: #34a60e;
+    --secondary-color: #536390;
+    --font-color: #34a60e;
+    --bg-color: #fff;
+    --heading-color: #292922;
+}
+
+.for_dark_theme {
+    --primary-color: #243e22;
+    --secondary-color: #818cab;
+    --font-color: #161625;
+    --bg-color: #161625;
+    --heading-color: #818cab;
+}

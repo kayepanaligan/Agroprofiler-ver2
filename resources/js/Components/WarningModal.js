@@ -1,0 +1,5 @@
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import Modal from "@/Components/Modal";
+import { TriangleAlert } from "lucide-react";
+const WarningModal = ({ isOpen, onClose, onConfirm, title, message, }) => (_jsx(Modal, { show: isOpen, maxWidth: "sm", onClose: onClose, children: _jsxs("div", { className: "p-6 grid grid-rows-4 place-items-center", children: [_jsx(TriangleAlert, { size: 45, className: "p-1 text-white bg-red-600 rounded-full" }), _jsx("h2", { className: "text-lg font-bold", children: title }), _jsx("p", { className: "text-sm text-gray-600", children: message }), _jsxs("div", { className: "flex space-between gap-5", children: [_jsx("button", { onClick: onConfirm, className: "mt-4 px-2 py-2 text-white bg-red-600 rounded-md hover:bg-red-700", children: "Delete" }), _jsx("button", { onClick: onClose, className: "mt-4 px-2 py-2 text-sm text-white bg-green-600 rounded-md hover:bg-green-700 focus:border ", children: "Cancel" })] })] }) }));
+export default WarningModal;

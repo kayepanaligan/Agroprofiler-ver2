@@ -1,0 +1,134 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: "Poppins", sans-serif;
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+    display: none;
+}
+
+.scrollbar-hidden {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+div::-webkit-scrollbar {
+    display: none;
+}
+
+body {
+    background-color: #f3f4f6;
+    transition: background-color 0.3s ease-in-out;
+}
+
+.data-grid {
+    background-color: black;
+    color: white;
+}
+
+.dark .data-grid .MuiDataGrid-columnHeaders {
+    background-color: #f5f5f5;
+    color: #000000;
+}
+
+.dark .data-grid {
+    background-color: #222;
+    color: white;
+}
+
+.dark .MuiDataGrid-columnHeaders {
+    background-color: transparent;
+    color: white;
+}
+
+.dark body {
+    background-color: #1a1d21;
+}
+
+.main-bg {
+    background-image: url("../js/Assets/main-bg.jpg");
+    background-size: cover;
+    background-position: center;
+    border-radius: 10px;
+}
+
+.right-bg {
+    background-image: url("../js/Assets/another-bg.jpg");
+    background-size: cover;
+    background-position: center;
+    border-radius: 10px;
+}
+
+/* Override the DataGrid row focus outline */
+.MuiDataGrid-root .MuiDataGrid-cell:focus {
+    outline: none; /* Remove the blue outline */
+}
+
+/* Ensure no background color on hover */
+.MuiDataGrid-root .MuiDataGrid-cell:hover {
+    background-color: transparent;
+}
+
+/* Default light mode text color */
+.MuiDataGrid-root .MuiDataGrid-cell {
+    color: black;
+}
+
+/* Make the headers transparent */
+.dark .MuiDataGrid-root .MuiDataGrid-columnHeaders {
+    background-color: transparent !important;
+    color: "white";
+}
+
+/* Checkbox color in light mode */
+.MuiDataGrid-root .MuiCheckbox-root {
+    color: #4caf50; /* Green checkbox */
+}
+
+/* Dark Mode Styles */
+.dark .MuiDataGrid-root .MuiDataGrid-cell {
+    color: white; /* White text in dark mode */
+}
+
+/* Transparent headers in dark mode */
+.dark .MuiDataGrid-root .MuiDataGrid-columnHeaders {
+    background-color: transparent !important;
+}
+
+/* Dark mode checkbox color */
+.dark .MuiDataGrid-root .MuiCheckbox-root {
+    color: white !important; /* Bright green checkbox */
+}
+
+/* Checkbox color when checked */
+.MuiDataGrid-root .MuiCheckbox-root.Mui-checked {
+    color: #4caf50 !important; /* Green checkboxes when checked */
+}
+
+.dark .MuiDataGrid-root .MuiCheckbox-root.Mui-checked {
+    color: white !important;
+}
+
+.for_light_theme {
+    --primary-color: #34a60e;
+    --secondary-color: #536390;
+    --font-color: #34a60e;
+    --bg-color: #fff;
+    --heading-color: #292922;
+}
+
+.for_dark_theme {
+    --primary-color: #243e22;
+    --secondary-color: #818cab;
+    --font-color: #161625;
+    --bg-color: #161625;
+    --heading-color: #818cab;
+}

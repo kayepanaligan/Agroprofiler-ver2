@@ -1,0 +1,29 @@
+.sidebar {
+    width: 200px;
+    background-color: #f5f5f5;
+    padding: 10px;
+}
+
+.menu-item {
+    padding: 10px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.submenu {
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+}
+
+.submenu.open {
+    max-height: 100px;
+    opacity: 1;
+}
+
+.submenu-item {
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
