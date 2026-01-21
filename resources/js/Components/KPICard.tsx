@@ -337,7 +337,7 @@ export function AllocationCoverageKPICard({
             subheading={
                 <div className="space-y-2 mt-3">
                     <div>
-                        <span className="text-[10px] text-gray-500 dark:text-gray-400">Top Allocation: </span>
+                        <span className="text-[10px] text-gray-500 dark:text-gray-400">Top allocation type and its source: </span>
                         <span className="text-xs font-semibold dark:text-white">
                             {topAllocationType}
                             {topAllocationSource && topAllocationSource !== 'N/A' && (
@@ -346,15 +346,15 @@ export function AllocationCoverageKPICard({
                         </span>
                     </div>
                     <div>
-                        <span className="text-[10px] text-gray-500 dark:text-gray-400">Top Allocated Commodity: </span>
+                        <span className="text-[10px] text-gray-500 dark:text-gray-400">Top allocated commodity: </span>
                         <span className="text-xs font-semibold dark:text-white">{topAllocatedCommodity}</span>
                     </div>
                     <div>
-                        <span className="text-[10px] text-gray-500 dark:text-gray-400">Avg Allocation per Farm: </span>
+                        <span className="text-[10px] text-gray-500 dark:text-gray-400">Avg allocation per farm: </span>
                         <span className="text-xs font-semibold dark:text-white">₱{avgAllocationPerFarm.toLocaleString()}</span>
                     </div>
                     <div>
-                        <span className="text-[10px] text-gray-500 dark:text-gray-400">Top Barangay(s): </span>
+                        <span className="text-[10px] text-gray-500 dark:text-gray-400">Top barangay(s) who received the most of this allocation type: </span>
                         <span className="text-xs font-semibold dark:text-white">
                             {topAllocatedBarangays.length > 0 ? topAllocatedBarangays.join(", ") : "N/A"}
                         </span>

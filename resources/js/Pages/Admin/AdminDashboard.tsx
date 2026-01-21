@@ -902,17 +902,6 @@ export default function Dashboard({
                     </Card>
                 </div>
 
-                <div className="mb-4">
-                    <Card 
-                        title={
-                            <PolicyEffectivenessTitle />
-                        }
-                        className="w-full"
-                    >
-                        <PolicyEffectivenessChart data={policyEffectivenessData} />
-                    </Card>
-                </div>
-
                 <div
                     className="grid grid-cols-1 mb-4"
                     id="geospatial"
