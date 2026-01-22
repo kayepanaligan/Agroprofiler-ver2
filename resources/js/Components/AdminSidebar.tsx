@@ -133,11 +133,11 @@ export default function AdminSidebar({ user, expanded, setExpanded }: Props) {
 
     return (
         <div
-            className={`fixed z-20 p-5 overflow-x-auto bg-white dark:bg-[#0D1A25] rounded-[1rem] ml-3 shadow ${
+            className={`fixed z-20 p-5 bg-white dark:bg-[#0D1A25] rounded-[1rem] ml-3 shadow flex flex-col ${
                 expanded ? "w-[265px]" : "w-[90px]"
             }`}
         >
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-shrink-0">
                 <button onClick={toggleMenu} className="p-2">
                     <Menu className="w-6 h-6 dark:text-white" />
                 </button>
@@ -147,7 +147,7 @@ export default function AdminSidebar({ user, expanded, setExpanded }: Props) {
             </div>
 
             {expanded ? (
-                <div className="flex items-center justify-center p-4">
+                <div className="flex items-center justify-center p-4 flex-shrink-0">
                     <div
                         className={`relative w-[90px] h-12 flex items-center rounded-full p-1 cursor-pointer transition ${
                             theme === "dark" ? "bg-yellow-400" : "bg-gray-300"
@@ -184,7 +184,7 @@ export default function AdminSidebar({ user, expanded, setExpanded }: Props) {
             ) : (
                 <button
                     onClick={toggleTheme}
-                    className="p-2 mt-2 border-[2px] rounded-full mb-4 dark:bg-yellow-400 transition"
+                    className="p-2 mt-2 border-[2px] rounded-full mb-4 dark:bg-yellow-400 transition flex-shrink-0"
                 >
                     {theme === "dark" ? (
                         <Sun className="w-6 h-6" />
@@ -194,7 +194,7 @@ export default function AdminSidebar({ user, expanded, setExpanded }: Props) {
                 </button>
             )}
 
-            <div className="overflow-auto h-[420px] ">
+            <div className="overflow-auto flex-1 min-h-0">
                 <ul>
                     {expanded ? (
                         <span className="ml-2 mb-4 text-sm font-semibold text-slate-500 dark:text-white">
@@ -536,7 +536,7 @@ export default function AdminSidebar({ user, expanded, setExpanded }: Props) {
                 </ul>
             </div>
 
-            <div className="w-full max-w-full">
+            <div className="w-full max-w-full mt-auto flex-shrink-0">
                 {expanded ? (
                     <div className="w-full">
                         <Link
