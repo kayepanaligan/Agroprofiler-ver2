@@ -12,7 +12,6 @@ import Histogram from "@/Components/Histogram";
 import { FarmerKPICard, FarmsKPICard, CropDamageKPICard, AllocationCoverageKPICard, } from "@/Components/KPICard";
 import { barangays } from "@/Utils/brgy";
 import AllocationVsDamageChart from "@/Components/AllocationVsDamageChart";
-import PolicyEffectivenessChart from "@/Components/PolicyEffectivenessChart";
 const PolicyEffectivenessTitle = () => {
     const [showTooltip, setShowTooltip] = useState(false);
     return (_jsxs("div", { className: "flex items-center gap-2", children: [_jsx("span", { children: "Policy Effectiveness Analysis" }), _jsxs("div", { className: "relative", onMouseEnter: () => setShowTooltip(true), onMouseLeave: () => setShowTooltip(false), children: [_jsx(HelpCircle, { className: "w-4 h-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 cursor-help" }), showTooltip && (_jsxs("div", { className: "absolute left-0 top-full mt-2 w-80 p-3 bg-gray-800 dark:bg-gray-900 text-white text-xs rounded-lg shadow-lg z-50", children: [_jsx("div", { className: "absolute bottom-full left-4 w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent border-b-gray-800 dark:border-b-gray-900" }), _jsx("p", { className: "mb-2", children: "This scatter plot visualizes the correlation between crop damage and funding allocation per barangay." }), _jsxs("p", { className: "mb-2", children: [_jsx("strong", { children: "The Trend Line:" }), " Represents the \"ideal\" allocation strategy where funding increases linearly with damage."] }), _jsxs("p", { className: "mb-2", children: [_jsx("strong", { children: "Outliers:" }), " Barangays significantly above the line are receiving more funding than their relative damage suggests, while those significantly below the line may be under-resourced relative to their needs."] }), _jsx("p", { className: "text-xs", children: "Hover over each point to see detailed information, expected allocation, and deviation from the trend." })] }))] })] }));
@@ -84,9 +83,17 @@ export default function Dashboard({ auth, children, totalAllocations, commoditie
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const url = selectedBarangay === "all"
-                    ? "/admin/commoditycategorycounts"
-                    : `/admin/commoditycategorycounts?barangay_id=${selectedBarangay}`;
+                const params = new URLSearchParams();
+                if (selectedBarangay && selectedBarangay !== "all") {
+                    params.append("barangay_id", selectedBarangay);
+                }
+                if (dateFromProp) {
+                    params.append("date_from", dateFromProp);
+                }
+                if (dateToProp) {
+                    params.append("date_to", dateToProp);
+                }
+                const url = `/admin/commoditycategorycounts${params.toString() ? `?${params.toString()}` : ''}`;
                 const response = await fetch(url);
                 const data = await response.json();
                 setCommodityCategoryDistribution(data);
@@ -103,7 +110,7 @@ export default function Dashboard({ auth, children, totalAllocations, commoditie
             }
         };
         fetchData();
-    }, [selectedBarangay]);
+    }, [selectedBarangay, dateFromProp, dateToProp]);
     useEffect(() => {
         const fetchGenderData = async () => {
             try {
@@ -237,7 +244,7 @@ export default function Dashboard({ auth, children, totalAllocations, commoditie
                                                                             : 0;
                                                                         return (_jsxs("li", { className: "mb-2 flex justify-between dark:text-white", children: [_jsx("span", { children: commodity.commodity_name }), _jsxs("span", { children: [commodity.commodity_total.toLocaleString(), " (", percentage, "%)"] })] }, commodity.commodity_name));
                                                                     }) }) }), _jsx("div", { children: _jsx(PieChart, { data: chartData }) })] })] }));
-                                        })()] })] }) }), _jsx("div", { className: "mb-4", children: _jsx(Card, { title: "Age Group Distribution", className: "w-full", children: _jsx(Histogram, { data: ageGroupData, title: "Farmers by Age Group", color: "#10b981" }) }) }), _jsx("div", { className: "mb-4", children: _jsxs(Card, { title: "Allocation vs. Damage Alignment", className: "w-full", children: [_jsxs("div", { className: "mb-4 text-sm text-gray-600 dark:text-gray-400", children: [_jsx("p", { className: "mb-2", children: "This chart compares allocation amounts (blue bars) with crop damage percentages (red bars) per barangay." }), _jsxs("p", { className: "mb-2", children: [_jsx("strong", { children: "What to look for:" }), " Ideally, the heights of red bars (Damage %) and blue bars (Allocation) should follow a similar pattern. Discrepancies indicate areas where allocation policy might need adjustment."] }), _jsx("p", { className: "text-xs", children: "Hover over each bar to see detailed information and alignment status." })] }), _jsx(AllocationVsDamageChart, { data: allocationVsDamageData })] }) }), _jsx("div", { className: "mb-4", children: _jsx(Card, { title: _jsx(PolicyEffectivenessTitle, {}), className: "w-full", children: _jsx(PolicyEffectivenessChart, { data: policyEffectivenessData }) }) }), _jsx("div", { className: "grid grid-cols-1 mb-4", id: "geospatial", children: _jsx("div", { children: _jsx(Card, { title: "Map of Digos City, Davao del Sur", children: _jsx("div", { children: _jsx(Heatmap, { heatmapData: heatmapData, commodityCategories: commodityCategories, allocationType: allocationType, cropDamageCauses: cropDamageCauses || [] }) }) }) }) }), _jsx("div", { children: _jsx(Card, { title: "Barangay Data Distribution", children: _jsxs("div", { children: [_jsx("div", { className: "p-5", children: _jsxs("select", { onChange: (e) => setDistributionType(e.target.value), className: "rounded-[12px] border-slate-500 w-[170px] dark:text-white mb-5 cursor-pointer dark:border-green-600 dark:bg-[#0D1A25] ", children: [_jsx("option", { value: "allocations", className: "dark:text-white", children: "Allocations" }), _jsx("option", { value: "farmers", className: "dark:text-white", children: "Farmers" }), commodityCategories.map((category) => (_jsx("option", { value: `commodity_categories_${category.name}`, className: "dark:text-white", children: category.name }, category.id)))] }) }), _jsx(GroupedBarChart, { data: heatmapData, distributionType: isValidDistributionType(distributionType)
+                                        })()] })] }) }), _jsx("div", { className: "mb-4", children: _jsx(Card, { title: "Age Group Distribution", className: "w-full", children: _jsx(Histogram, { data: ageGroupData, title: "Farmers by Age Group", color: "#10b981" }) }) }), _jsx("div", { className: "mb-4", children: _jsxs(Card, { title: "Allocation vs. Damage Alignment", className: "w-full", children: [_jsxs("div", { className: "mb-4 text-sm text-gray-600 dark:text-gray-400", children: [_jsx("p", { className: "mb-2", children: "This chart compares allocation amounts (blue bars) with crop damage percentages (red bars) per barangay." }), _jsxs("p", { className: "mb-2", children: [_jsx("strong", { children: "What to look for:" }), " Ideally, the heights of red bars (Damage %) and blue bars (Allocation) should follow a similar pattern. Discrepancies indicate areas where allocation policy might need adjustment."] }), _jsx("p", { className: "text-xs", children: "Hover over each bar to see detailed information and alignment status." })] }), _jsx(AllocationVsDamageChart, { data: allocationVsDamageData })] }) }), _jsx("div", { className: "grid grid-cols-1 mb-4", id: "geospatial", children: _jsx("div", { children: _jsx(Card, { title: "Map of Digos City, Davao del Sur", children: _jsx("div", { children: _jsx(Heatmap, { heatmapData: heatmapData, commodityCategories: commodityCategories, allocationType: allocationType, cropDamageCauses: cropDamageCauses || [] }) }) }) }) }), _jsx("div", { children: _jsx(Card, { title: "Barangay Data Distribution", children: _jsxs("div", { children: [_jsx("div", { className: "p-5", children: _jsxs("select", { onChange: (e) => setDistributionType(e.target.value), className: "rounded-[12px] border-slate-500 w-[170px] dark:text-white mb-5 cursor-pointer dark:border-green-600 dark:bg-[#0D1A25] ", children: [_jsx("option", { value: "allocations", className: "dark:text-white", children: "Allocations" }), _jsx("option", { value: "farmers", className: "dark:text-white", children: "Farmers" }), commodityCategories.map((category) => (_jsx("option", { value: `commodity_categories_${category.name}`, className: "dark:text-white", children: category.name }, category.id)))] }) }), _jsx(GroupedBarChart, { data: heatmapData, distributionType: isValidDistributionType(distributionType)
                                             ? distributionType
                                             : "allocations" })] }) }) })] })] }));
 }

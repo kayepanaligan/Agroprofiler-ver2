@@ -70,6 +70,7 @@ export default function Sidebar({ user, expanded, setExpanded }: Props) {
     const [isFarmerOpen, setIsFarmerOpen] = useState<boolean>(
         JSON.parse(localStorage.getItem("isFarmerOpen") || "false")
     );
+    const [imageError, setImageError] = useState<boolean>(false);
 
     const handleToggle = () => {
         setIsAllocationOpen((prev) => !prev);
@@ -569,58 +570,84 @@ export default function Sidebar({ user, expanded, setExpanded }: Props) {
                 </ul>
             </div>
 
-            <div className=" w-[230px] text-ellipsis">
+            <div className="w-full max-w-full">
                 {expanded ? (
-                    <span className="inline-flex">
+                    <div className="w-full">
                         <Link
                             href={route("profile.edit")}
-                            className="inline-flex dark:border-green-600 border-[2px] items-center py-4 px-3 text-sm leading-4 font-medium rounded-[1rem] text-gray-500 bg-transparent hover:text-gray-700 focus:outline-none transition ease-in-out duration-150"
+                            className="inline-flex w-full items-center py-3 px-3 text-sm leading-4 font-medium rounded-[1rem] text-gray-500 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 focus:outline-none transition ease-in-out duration-150 shadow-md"
                         >
-                            <img
-                                src={user.pfp}
-                                width="35px"
-                                height="35px"
-                                className="mr-1 rounded-md"
-                            />
-                            <div className="text-left mx-2">
-                                <div className="flex gap-2 ">
-                                    <span className="capitalize text-[12px] font-semibold  text-black dark:text-green-600">
+                            <div className="flex-shrink-0 relative">
+                                {user.pfp && !imageError ? (
+                                    <img
+                                        src={user.pfp.startsWith('/') || user.pfp.startsWith('http') ? user.pfp : `/storage/${user.pfp}`}
+                                        alt={`${user.firstname} ${user.lastname}`}
+                                        width="40px"
+                                        height="40px"
+                                        className="rounded-full object-cover border border-gray-300 dark:border-gray-600"
+                                        onError={() => setImageError(true)}
+                                    />
+                                ) : (
+                                    <div className="flex items-center justify-center w-[40px] h-[40px] rounded-full bg-green-600 text-white font-semibold text-sm border border-gray-300 dark:border-gray-600">
+                                        {user.firstname?.[0]?.toUpperCase() || 'U'}
+                                        {user.lastname?.[0]?.toUpperCase() || ''}
+                                    </div>
+                                )}
+                            </div>
+                            <div className="text-left ml-3 flex-1 min-w-0">
+                                <div className="flex flex-col gap-0.5">
+                                    <span className="capitalize text-[13px] font-semibold text-black dark:text-green-600 truncate">
                                         {user.firstname} {user.lastname}
                                     </span>
-                                </div>
-                                <div>
-                                    <span className="capitalize dark:text-white font-regular text-[11px]">
-                                        ({user.role})
+                                    <span className="capitalize dark:text-gray-300 text-gray-600 font-regular text-[11px] truncate">
+                                        {user.email}
+                                    </span>
+                                    <span className="capitalize dark:text-gray-400 text-gray-500 font-medium text-[10px]">
+                                        {user.role}
                                     </span>
                                 </div>
                             </div>
                         </Link>
-                    </span>
+                    </div>
                 ) : (
-                    <span>
+                    <div className="flex justify-center">
                         <Link
                             href={route("profile.edit")}
-                            className="inline-flex dark:border-green-600 border-[2px] items-center py-2 px-2 text-sm leading-4 font-medium rounded-lg text-gray-500 bg-transparent hover:text-gray-700 focus:outline-none transition ease-in-out duration-150"
+                            className="inline-flex items-center justify-center py-2 px-2 text-sm leading-4 font-medium rounded-lg text-gray-500 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 focus:outline-none transition ease-in-out duration-150 shadow-md"
                         >
-                            <User2 size={13} className="dark:text-green-600" />
+                            {user.pfp && !imageError ? (
+                                <img
+                                    src={user.pfp.startsWith('/') || user.pfp.startsWith('http') ? user.pfp : `/storage/${user.pfp}`}
+                                    alt={`${user.firstname} ${user.lastname}`}
+                                    width="32px"
+                                    height="32px"
+                                    className="rounded-full object-cover"
+                                    onError={() => setImageError(true)}
+                                />
+                            ) : (
+                                <div className="flex items-center justify-center w-[32px] h-[32px] rounded-full bg-green-600 text-white font-semibold text-xs">
+                                    {user.firstname?.[0]?.toUpperCase() || 'U'}
+                                    {user.lastname?.[0]?.toUpperCase() || ''}
+                                </div>
+                            )}
                         </Link>
-                    </span>
+                    </div>
                 )}
 
                 {expanded ? (
-                    <div className="flex gap-2 justify-center content-center">
-                        <Link href={route("logout")} method="post" as="button">
-                            <span className="inline-flex mt-3 gap-1 text-[10px] font-semibold hover:bg-red-700 hover:text-white text-red-600 border p-2 rounded-lg shadow-lg  ">
-                                <Power size={13} />
+                    <div className="flex gap-2 justify-center mt-3">
+                        <Link href={route("logout")} method="post" as="button" className="w-full">
+                            <span className="inline-flex w-full justify-center items-center gap-2 text-[11px] font-semibold bg-red-500/20 dark:bg-red-500/30 backdrop-blur-md hover:bg-red-500/30 dark:hover:bg-red-500/40 text-red-700 dark:text-red-400 border border-red-300/50 dark:border-red-400/50 py-2 px-3 rounded-lg shadow-lg transition ease-in-out duration-150">
+                                <Power size={14} />
                                 LOG OUT
                             </span>
                         </Link>
                     </div>
                 ) : (
-                    <div className="flex">
+                    <div className="flex justify-center mt-3">
                         <Link href={route("logout")} method="post" as="button">
-                            <span className="inline-flex mt-3 gap-1 text-[10px] font-semibold hover:bg-red-700 hover:text-white text-red-600 border p-2 rounded-lg shadow-lg  ">
-                                <Power size={13} />
+                            <span className="inline-flex items-center justify-center gap-1 text-[11px] font-semibold bg-red-500/20 dark:bg-red-500/30 backdrop-blur-md hover:bg-red-500/30 dark:hover:bg-red-500/40 text-red-700 dark:text-red-400 border border-red-300/50 dark:border-red-400/50 p-2 rounded-lg shadow-lg transition ease-in-out duration-150">
+                                <Power size={14} />
                             </span>
                         </Link>
                     </div>

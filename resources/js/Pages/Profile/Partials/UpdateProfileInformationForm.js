@@ -3,31 +3,60 @@ import InputError from "@/Components/InputError";
 import InputLabel from "@/Components/InputLabel";
 import PrimaryButton from "@/Components/PrimaryButton";
 import TextInput from "@/Components/TextInput";
-import { Link, useForm, usePage } from "@inertiajs/react";
+import { Link, useForm, usePage, router } from "@inertiajs/react";
 import { Transition } from "@headlessui/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 export default function UpdateProfileInformation({ mustVerifyEmail, status, className = "", }) {
-    const user = usePage().props.auth.user;
+    const { props } = usePage();
+    const user = props.auth.user;
     const { data, setData, patch, errors, processing, recentlySuccessful } = useForm({
         pfp: user.pfp,
-        firstname: user.firstname,
-        lastname: user.lastname,
-        email: user.email,
+        firstname: user.firstname || "",
+        lastname: user.lastname || "",
+        email: user.email || "",
     });
-    const [preview, setPreview] = useState(user.pfp ? `/storage/pfp/${user.pfp}` : null);
+    const getImageUrl = (pfp) => {
+        if (!pfp)
+            return null;
+        if (pfp.startsWith('/') || pfp.startsWith('http')) {
+            return pfp;
+        }
+        return `/storage/${pfp}`;
+    };
+    const [preview, setPreview] = useState(getImageUrl(user.pfp));
+    // Update preview when user data changes (after successful update)
+    useEffect(() => {
+        const currentUser = props.auth.user;
+        // If pfp is currently a File (being uploaded), don't update yet
+        if (!(data.pfp instanceof File) && currentUser.pfp) {
+            setPreview(getImageUrl(currentUser.pfp));
+            // Update form data to reflect the new pfp value
+            if (data.pfp !== currentUser.pfp) {
+                setData("pfp", currentUser.pfp);
+            }
+        }
+    }, [props.auth.user.pfp]);
     const submit = (e) => {
         e.preventDefault();
+        // Always use FormData for consistency (like UsersList does)
         const formData = new FormData();
-        formData.append("firstname", data.firstname);
-        formData.append("lastname", data.lastname);
-        formData.append("email", data.email);
+        formData.append("_method", "PATCH");
+        formData.append("firstname", String(data.firstname || ""));
+        formData.append("lastname", String(data.lastname || ""));
+        formData.append("email", String(data.email || ""));
+        // Only append pfp if it's a File (new upload)
         if (data.pfp instanceof File) {
             formData.append("pfp", data.pfp);
         }
-        patch(route("profile.update"), {
-            data: formData,
-            headers: {
-                "Content-Type": "multipart/form-data",
+        router.post(route("profile.update"), formData, {
+            forceFormData: true,
+            preserveScroll: true,
+            onSuccess: () => {
+                // Reset pfp to the updated value (not the File object)
+                if (data.pfp instanceof File) {
+                    // After successful upload, the user.pfp will be updated by Inertia
+                    // We'll reset it in the next render via useEffect
+                }
             },
         });
     };

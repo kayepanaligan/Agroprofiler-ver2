@@ -949,15 +949,34 @@ public function indexResponse(Request $request) {
     public function commodityCategoryCounts(Request $request)
     {
         $barangayId = $request->query('barangay_id');
+        $dateFrom = $request->query('date_from');
+        $dateTo = $request->query('date_to');
+        
+        // Helper closure for date range filtering
+        $applyDateFilter = function($query, $dateColumn = 'created_at') use ($dateFrom, $dateTo) {
+            if ($dateFrom && $dateTo) {
+                $query->whereBetween($dateColumn, [$dateFrom, $dateTo]);
+            } elseif ($dateFrom) {
+                $query->whereDate($dateColumn, '>=', $dateFrom);
+            } elseif ($dateTo) {
+                $query->whereDate($dateColumn, '<=', $dateTo);
+            }
+            return $query;
+        };
         
         $categories = CommodityCategory::with(['commodities'])->get();
 
-        $result = $categories->map(function ($category) use ($barangayId) {
-            $commodities = $category->commodities->map(function ($commodity) use ($barangayId) {
+        $result = $categories->map(function ($category) use ($barangayId, $applyDateFilter, $dateFrom, $dateTo) {
+            $commodities = $category->commodities->map(function ($commodity) use ($barangayId, $applyDateFilter, $dateFrom, $dateTo) {
                 $farmsQuery = Farm::where('commodity_id', $commodity->id);
                 
                 if ($barangayId && $barangayId !== 'all') {
                     $farmsQuery->where('brgy_id', $barangayId);
+                }
+                
+                // Apply date filter if provided
+                if ($dateFrom || $dateTo) {
+                    $applyDateFilter($farmsQuery);
                 }
                 
                 return [

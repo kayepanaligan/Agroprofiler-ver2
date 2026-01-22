@@ -42,10 +42,14 @@ public function update(ProfileUpdateRequest $request): RedirectResponse
         $path = $file->store('pfp', 'public');
 
         if ($user->pfp) {
-            Storage::disk('public')->delete($user->pfp);
+            // Delete old file - handle both full URL and path formats
+            $oldPath = str_replace('/storage/', '', $user->pfp);
+            $oldPath = str_replace('storage/', '', $oldPath);
+            Storage::disk('public')->delete($oldPath);
         }
 
-        $validatedData['pfp'] = $path;
+        // Store as full URL path for easy display
+        $validatedData['pfp'] = '/storage/' . $path;
     }
 
     $user->fill($validatedData);
@@ -55,6 +59,9 @@ public function update(ProfileUpdateRequest $request): RedirectResponse
     }
 
     $user->save();
+    
+    // Refresh the user to get the updated data
+    $user->refresh();
 
     return Redirect::route('profile.edit')->with('success', 'Profile updated successfully.');
 }
